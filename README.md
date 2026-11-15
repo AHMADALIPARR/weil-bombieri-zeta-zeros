@@ -12,14 +12,13 @@ The target is the proportion of non-trivial zeros of the Riemann zeta function t
 
 Alpöge–Furman (2026) proved unconditionally that this proportion is at least $2/3$, and at least $0.6725$ under the Montgomery–Taylor window. Distinct zeros reach at least $5/6$ (about $0.8362$ with the same window). The classical Levinson–Conrey mollifier record was $5/12\approx 0.4167$ for zeros on the line; the new argument works in a different lane.
 
-**Mechanism (one paragraph).**  
-Weil’s explicit formula defines a Hermitian quadratic form $W(f,g)$ on bandwidth-one test functions. Evaluating $W$ on a finite grid of modulated windows yields an $N\times N$ Hermitian matrix $R$. Unconditional Montgomery-type form-factor asymptotics (BGSTB / Goldston–Suriajaya) control the entries. Bombieri’s rank-trace inequality then lower-bounds the number of strictly positive eigenvalues:
+**Mechanism.** Weil’s explicit formula defines a Hermitian quadratic form $W(f,g)$ on bandwidth-one test functions. Evaluating $W$ on a finite grid of modulated windows yields an $N\times N$ Hermitian matrix $R$. Unconditional Montgomery-type form-factor asymptotics (BGSTB / Goldston–Suriajaya) control the entries. Bombieri’s rank-trace inequality then lower-bounds the number of strictly positive eigenvalues:
 
 $$
 n_+(R)\;\ge\;\frac{(\mathrm{tr}\,R)^2}{\mathrm{tr}(R^2)}\,.
 $$
 
-Positivity of those eigenvalues forces a matching proportion of zeros in the window to be simple and critical-line. The analytic quantity we maximize is the normalized ratio
+Positivity of those eigenvalues forces a matching proportion of zeros in the window to be simple and critical-line. The analytic quantity we maximize is
 
 $$
 \rho(R)\;=\;\frac{(\mathrm{tr}\,R)^2}{N\,\|R\|_{\mathrm{HS}}^2}\,.
@@ -36,52 +35,40 @@ $$
 | Path | Role |
 |------|------|
 | `klong/weil_horn.kg` | Pure Klong: Montgomery–Taylor window, sinc-Toeplitz Gram, **$\delta(\alpha)$ diagonal contact mass**, matrix dump |
-| `uuie/uuie_kernel.c` | C11, zero deps (`-lm` only): directed-rounding $\rho$ (trace `FE_DOWNWARD`, HS-norm `FE_UPWARD`) + cyclic Jacobi $n_+$ with Gershgorin safety margin |
-| `horn/horn_cert.pl` | Hardened SWI-Prolog: type/domain errors, finite-number guards, underflow protection, `qsvt_polylog_cert/4` policy envelope |
-| `horn/test_qsvt_polylog.pl` | plunit suite for the policy predicate |
-| `harness/gate.py` | Hard gate: LLM output → extract `<klong_kernel>` → run kg → UUie; **prose-only answers are rejected** |
-| `harness/harness.py` | Synthesis loop entry points around the gate |
-| `prompts/muse_system_contract.xml` | Muse contract forced to emit executable Klong, not prose |
-| `.github/workflows/horn-sweep.yml` | Stateless parameter matrix runner |
+| `uuie/uuie_kernel.c` | C11, zero deps (`-lm` only): directed-rounding $\rho$ + cyclic Jacobi $n_+$ with Gershgorin safety margin |
+| `horn/horn_cert.pl` | Hardened SWI-Prolog: type/domain errors, finite guards, underflow protection, `qsvt_polylog_cert/4` |
+| `horn/test_qsvt_polylog.pl` | plunit suite |
+| `harness/gate.py` | Hard gate: extract `<klong_kernel>` → kg → UUie; **prose rejected** |
+| `harness/harness.py` | Synthesis entry points |
+| `prompts/muse_system_contract.xml` | Muse must emit executable Klong |
+| `.github/workflows/horn-sweep.yml` | Stateless parameter matrix |
 
 ### Quantum bridge and complexity audit
 
 | Path | Role |
 |------|------|
-| `quantum/block_encoding_audit.py` | Circulant-QFT vs LCU subnormalization, truncation error, $\delta_{\min}$, QSVT degree budgets |
-| `quantum/berry_keating_qsvt.py` | Classical Chebyshev/Jackson projector + discrete Berry–Keating generator (simulation only) |
-| `docs/block-encoding-audit.md` | Why Circulant-QFT keeps $\alpha_C=O(1)$ and where polylog dies |
-| `docs/quantum-bridge.md` | Map $R\mapsto \hat H_{\mathrm{BK}}\mapsto$ QSVT/QPE |
+| `quantum/block_encoding_audit.py` | Circulant-QFT vs LCU, $\delta_{\min}$, QSVT degree budgets |
+| `quantum/berry_keating_qsvt.py` | Classical Chebyshev projector + discrete Berry–Keating (simulation) |
+| `docs/block-encoding-audit.md` | Where polylog dies |
+| `docs/quantum-bridge.md` | $R\mapsto\hat H_{\mathrm{BK}}\mapsto$ QSVT/QPE |
 | `docs/qsvt-polylog-soundness.md` | **What `qsvt_polylog_cert` does *not* prove** |
 
 ### Formal layer (Alloy + SMT)
 
 | Path | Role |
 |------|------|
-| `formal/qsvt_counterclaims.als` | Counterclaims: FP ceiling under-report; $C=1$ below Zolotarev / GSLW |
-| `formal/qsvt_manifold.als` | Bounded manifold: SAT rounding slip, SAT unsound prefactor, UNSAT hardened invariant |
-| `formal/fp_rounding_witness.smt2` | QF_FP: **sat** witness that RNE can undercut RTP on the same quotient (Z3 4.8) |
-| `formal/recursive_manifold_prune.py` | QF_NRA recursive $(\alpha_C,g)$ pruner → Horn facts |
-| `horn/smt_manifold_cert.pl` | `qsvt_smt_manifold_cert/3` membership in SMT-certified cells |
-| `docs/alloy-smt-manifold.md` | Two-layer verification index |
-
-### Legacy / seed
-
-| Path | Role |
-|------|------|
-| `kernels/weil_probe.bqn` | Original CBQN probe |
-| `docs/constraints.md` | Conjugate symmetry, unit band, stability |
-| `docs/hard-gate.md` | Gate acceptance criteria |
-| `docs/jacobi-eigensolver.md` | Jacobi API and rounding discipline |
-| `docs/horn-klong-uuie.md` | Classical stack overview |
+| `formal/qsvt_counterclaims.als` | FP ceiling under-report; $C=1$ below Zolotarev/GSLW |
+| `formal/qsvt_manifold.als` | SAT rounding slip, SAT unsound prefactor, UNSAT hardened invariant |
+| `formal/fp_rounding_witness.smt2` | QF_FP **sat**: RNE can undercut RTP (Z3 4.8) |
+| `formal/recursive_manifold_prune.py` | QF_NRA $(\alpha_C,g)$ pruner → Horn facts |
+| `horn/smt_manifold_cert.pl` | Membership in SMT-certified cells |
+| `docs/alloy-smt-manifold.md` | Two-layer index |
 
 ---
 
-## 3. Benchmarks (measured, not aspirational)
+## 3. Benchmarks (measured)
 
-### 3.1 Trace-moment ratio and exact $n_+$ with $\delta(\alpha)$ contact
-
-Montgomery–Taylor continuous symbol **plus** diagonal contact $c_0 I$ with $c_0=1$. All eigenvalues lift above zero; Jacobi reports $n_+/N=1$; analytic $\rho$ clears $0.6725$.
+### 3.1 $\rho$ and $n_+$ with $\delta(\alpha)$ contact ($c_0=1$)
 
 ```
    N |   rho_lb |  n+/N |   emin |   emax
@@ -93,172 +80,160 @@ Montgomery–Taylor continuous symbol **plus** diagonal contact $c_0 I$ with $c_
 1024 |   0.7708 | 1.000 | 1.0000 | 3.6986
 ```
 
-Without the contact mass, the same continuous symbol alone gave $\rho\approx 0.29$ while Jacobi still saw $n_+/N\approx 0.74$–$0.84$. That gap is exactly the Cauchy–Schwarz slack: equal positive eigenvalues would make $\rho=n_+/N$; a decaying spectrum inflates $\|R\|_{\mathrm{HS}}^2$ relative to $(\mathrm{tr}\,R)^2$. The Jacobi oracle was built to see past that slack.
+Without contact: $\rho\approx 0.29$, Jacobi $n_+/N\approx 0.74$–$0.84$. Cauchy–Schwarz slack — Jacobi was built for that.
 
-### 3.2 Block-encoding audit (with contact)
-
-```
-   N | alpha_C | alpha_LCU |  C_U gates | q(0.05) | q(min)
-  64 |  3.6942 |    3.6942 |       2584 |    1021 |     52
- 128 |  3.6971 |    3.6971 |       2604 |    1022 |     52
- 256 |  3.6985 |    3.6985 |       2626 |    1022 |     52
- 512 |  3.6993 |    3.6993 |       2650 |    1023 |     52
-1024 |  3.6996 |    3.6996 |       2676 |    1023 |     52
-```
-
-- $\alpha_C=\alpha_{\mathrm{LCU}}$ (non-negative Fourier coefficients → Circulant-QFT matches full LCU 1-norm).
-- $C_U=O(\log^2 N)$ for the Circulant-QFT block-encoding sketch.
-- Contact lifts $\delta_{\min}$ to $\Theta(1)$, so exact-gap QSVT degree collapses from $\sim 10^{10}$ (no contact) to $\sim 52$.
-
-### 3.3 Policy predicate under SWI-Prolog 9.0.4
+### 3.2 Block-encoding (with contact)
 
 ```
-?- qsvt_polylog_cert(1000000, 2.70, 0.05, Q).
-Q = 747.
-
-?- qsvt_polylog_cert(1000000, 3.0, 0.05, Q).
-Q = 829.
-
-?- qsvt_polylog_cert(1000000, 3.01, 0.05, _).
-false.                          % above AlphaCap
-
-?- qsvt_polylog_cert(1000000, 2.70, 0.049, _).
-false.                          % below GapFloor
-
-?- qsvt_polylog_cert(0, 2.70, 0.05, _).
-ERROR: domain_error(positive_integer, 0)  [context qsvt_polylog_cert/4]
+   N | alpha_C | alpha_LCU |  C_U | q(0.05) | q(min)
+  64 |  3.6942 |    3.6942 | 2584 |    1021 |     52
+ 128 |  3.6971 |    3.6971 | 2604 |    1022 |     52
+1024 |  3.6996 |    3.6996 | 2676 |    1023 |     52
 ```
 
-### 3.4 IEEE-754 disagreement (Z3 4.8.12)
+$\alpha_C=\alpha_{\mathrm{LCU}}$; $C_U=O(\log^2 N)$; contact lifts $\delta_{\min}$ so exact-gap degree falls from $\sim 10^{10}$ to $\sim 52$.
+
+### 3.3 Policy (SWI-Prolog 9.0.4)
+
+```
+?- qsvt_polylog_cert(1000000, 2.70, 0.05, Q).  % Q = 747
+?- qsvt_polylog_cert(1000000, 3.01, 0.05, _).  % false (AlphaCap)
+?- qsvt_polylog_cert(0, 2.70, 0.05, _).        % domain_error positive_integer
+```
+
+### 3.4 IEEE-754 (Z3 4.8.12)
 
 ```
 $ z3 formal/fp_rounding_witness.smt2
-sat
+sat   # RNE(alpha/gap) < RTP(alpha/gap) for concrete normal binary64 values
 ```
 
-Concrete normal binary64 $\alpha,g$ with $\mathrm{RNE}(\alpha/g)<\mathrm{RTP}(\alpha/g)$. That is the structural fact behind the ceiling-soundness gap: round-to-nearest can sit on the wrong side of an integer discontinuity relative to the exact real product.
+---
+
+## 4. What is proved here vs not
+
+**Proved / enforced:** directed-rounding lower bound on $\rho$; exact $n_+$ with Gershgorin margin; hard reject of non-executable LLM output; policy type/domain/finite guards; Alloy/SMT encoding of the FP-ceiling gap and the $C=1$ prefactor gap.
+
+**Not proved:** soundness of $\lceil\mathrm{fl}((\alpha_C/g)\ln(1/\varepsilon))\rceil$ as an upper bound on the true ceiling; existence of a QSVT phase sequence of that degree ($C=1$ is below Zolotarev $\approx 4/\pi$ and GSLW $\approx 4$; reference point gives 747 vs 950 vs 2985); hardware gate counts for a real Circulant-QFT circuit; localisation of individual $\gamma_n$; anything past bandwidth one.
 
 ---
 
-## 4. What is proved (in this codebase)
-
-**Proved / enforced here**
-
-1. **Directed-rounding lower bound on $\rho$.** Trace under `FE_DOWNWARD`, Hilbert–Schmidt under `FE_UPWARD`; ratio formed under downward rounding. A passing certificate is a machine-checkable inequality $\rho_{\mathrm{lower}}>\mathrm{target}$ (or Jacobi fraction $>\mathrm{target}$).
-2. **Exact $n_+$ under a Gershgorin residual margin.** Jacobi diagonalisation on a private copy; positivity tested after subtracting a directed-rounding row-sum safety term.
-3. **Hard rejection of non-executable LLM output.** No `<klong_kernel>` → reject. Klong non-zero exit or missing matrix → reject. UUie exit $\neq 0$ → reject.
-4. **Policy envelope discipline.** Instantiation/type/domain errors for invalid $(N,\alpha_C,g)$; finite-number and underflow guards; fail (not throw) when valid parameters sit outside $(\alpha_C\le 3,\, g\ge 0.05,\, \widehat Q\le 1024)$.
-5. **Structural counterclaims.** Alloy + SMT encode: (i) RNE can undercut RTP; (ii) $C=1$ lies below Zolotarev ($4/\pi$) and constructive GSLW ($\approx 4$) degree formulae on the reference parameters.
-
-**Not proved by this codebase**
-
-1. **That $\widehat Q=\lceil\mathrm{fl}((\alpha_C/g)\ln(1/\varepsilon))\rceil$ is a sound upper bound on the true mathematical ceiling.** Round-to-nearest does not guarantee $\widehat x\ge x$ before `ceiling`.
-2. **That degree $\widehat Q$ admits a QSVT phase sequence implementing a $\varepsilon$-accurate sign polynomial on the gap.** The hardcoded prefactor $C=1$ is strictly below known lower and constructive upper bounds. On $(\alpha_C,g,\varepsilon)=(2.70,0.05,10^{-6})$ the Prolog degree is $747$; Zolotarev already requires $\approx 950$; constructive GSLW $\approx 2985$.
-3. **A full Circulant-QFT block-encoding circuit with proved gate counts on hardware.** $C_U$ numbers are analytic sketches from QFT + symbol-oracle accounting, not compiled circuits.
-4. **End-to-end extraction of individual ordinates $\gamma_n$.** Rank-trace counts positive eigenvalues; it does not localise zeros. QPE readout still scales with the number of sampled eigenphases.
-5. **Anything beyond bandwidth one without new analytic input.** Unconditional form-factor control is only for $|\alpha|\le 1$. Crossing that wall is an open analytic problem, not a software one.
-
----
-
-## 5. Architecture (how the pieces fit)
+## 5. Architecture
 
 ```
-LLM / Muse
-   │  must emit <klong_kernel>…</klong_kernel>
-   ▼
-harness/gate.py
-   │  kg → matrix_R.dat
-   │  uuie_kernel N target matrix_R.dat
-   ▼
-rank_trace_cert(...)          ← directed ρ + Jacobi n+
-   │
-   ├─► horn classical: simple_critical / simple_critical_exact
-   │
-   └─► qsvt_polylog_cert      ← policy only (not a QSVT existence proof)
-            │
-            └─► optional: qsvt_smt_manifold_cert  ← membership in QF_NRA-certified (α,g) cell
+LLM/Muse → <klong_kernel> → gate.py → kg → matrix_R.dat → uuie_kernel
+    → rank_trace_cert → Horn simple_critical / qsvt_polylog_cert
+                       → optional qsvt_smt_manifold_cert (QF_NRA cells)
 ```
 
-Parallel track: `block_encoding_audit.py` and `berry_keating_qsvt.py` study the *same* matrix $R$ under Circulant-QFT cost models and classical polynomial projectors. They do not feed the hard gate; they bound expectations for any future quantum implementation.
+Parallel: block-encoding audit and Berry–Keating simulation on the same $R$ — cost models, not the hard gate.
 
 ---
 
-## 6. Open problems (honest list)
+## 6. Open problems
 
-1. **Bandwidth $>1$.** Unconditional pair correlation past $|\alpha|=1$ would raise the classical ceiling. No code change substitutes for that theorem.
-2. **Sound ceiling under floating point.** Replace `FE_TONEAREST` arithmetic in the policy predicate by directed upward rounding or `clp(q)` rationals so that reported envelopes cannot under-shoot $Q^*$.
-3. **Proved constructive prefactor.** Swap $C=1$ for a theorem-backed $C_{\mathrm{cert}}\ge C_{\mathrm{Zolotarev}}$ (ideally matching a verified QSP phase table) before claiming polylog QSVT query bounds.
-4. **Individual zero locations.** Rank-trace is a counting argument. Connecting positive eigenmodes of $R$ to explicit $\gamma_n$ remains open even under RH-style spectral interpretations.
-5. **Scaling the contact mass.** $c_0=1$ is a working normalisation that clears $0.6725$ in the discrete model; matching the precise $T\log T$ coefficient of the explicit formula across heights $T$ needs a more careful asymptotic calibration.
-6. **Formal verification of UUie.** The C kernel is small and auditable; a machine-checked proof of the directed-rounding inequalities (e.g. in Coq/Isabelle with a floating-point library) is still future work.
+1. Bandwidth $|\alpha|>1$ (analytic, external).  
+2. Sound ceiling under FP (directed-up / rationals in the policy predicate).  
+3. Proved constructive prefactor $C_{\mathrm{cert}}\ge 4/\pi$ (ideally GSLW) before polylog QSVT claims.  
+4. Individual zero locations from positive eigenmodes.  
+5. Calibrate $c_0(T)$ to the explicit-formula diagonal.  
+6. Machine-checked proof of UUie directed-rounding inequalities.
 
 ---
 
-## 7. How to run the classical certificate path
+## 7. Run
 
 ```bash
-# Build the oracle
-cc -std=c11 -O2 -frounding-math -ffp-contract=off \
-   uuie/uuie_kernel.c -lm -o uuie/uuie_kernel
-
-# Klong (requires Nils Holm kg + math.kg on the load path)
-kg -l klong/weil_horn.kg          # writes matrix_R.dat, prints residual
-
-# Certificate
+cc -std=c11 -O2 -frounding-math -ffp-contract=off uuie/uuie_kernel.c -lm -o uuie/uuie_kernel
+kg -l klong/weil_horn.kg
 ./uuie/uuie_kernel 128 0.6725 matrix_R.dat
-# → rank_trace_cert(128, TrDown, Hs2Up, RhoLower, Nplus, JacobiFrac, valid).
-```
-
-Hard gate from Python:
-
-```python
-from harness.gate import clean_and_gate_llm_output
-verdict = clean_and_gate_llm_output(raw_llm_text, n=128, target_rho=0.6725)
-assert verdict["accepted"]  # else reason in verdict["reason"]
-```
-
-Policy predicate:
-
-```bash
-swipl -q -s horn/horn_cert.pl -g "qsvt_polylog_cert(1000000,2.70,0.05,Q), writeln(Q), halt"
-```
-
-FP witness:
-
-```bash
+swipl -q -s horn/horn_cert.pl -g 'qsvt_polylog_cert(1000000,2.70,0.05,Q),writeln(Q),halt'
 z3 formal/fp_rounding_witness.smt2
-```
-
-Manifold prune (requires `z3` on `PATH`):
-
-```bash
 python3 formal/recursive_manifold_prune.py > horn/certified_manifold_cells.pl
 ```
 
 ---
 
-## 8. Design principles that actually held
+## 8. Design principles that held
 
-- **Executable or reject.** Natural-language claims never enter the certificate path.
-- **Directed rounding for inequalities that must not flip.** Down on numerators that should be large, up on denominators that should be small.
-- **Jacobi as the equalizer.** When the spectrum is uneven, $\rho$ underestimates $n_+/N$; the eigensolver reports the count the analytic bound only lower-bounds.
-- **Say what is not proved.** The QSVT policy predicate is a budget check with a known false prefactor and a known FP gap. Encoding that in Alloy/SMT is part of the deliverable, not an embarrassment to hide.
-- **Zero dependency on the critical path.** UUie is C11 + libm. Klong is a public-domain array language. Horn is SWI-Prolog. The quantum scripts use only PyTorch for classical linear algebra simulations.
+Executable or reject. Directed rounding on inequalities that must not flip. Jacobi when the spectrum is uneven. Name what is not proved. Zero dependency on the critical path (C11, Klong, SWI-Prolog).
 
 ---
 
 ## 9. Lineage
 
-- Weil (1952): explicit formula as Hermitian form; positivity $\Leftrightarrow$ RH in the appropriate sense.
-- Montgomery (1973): pair correlation; form factor $F(\alpha)$; GUE connection (Dyson).
-- Bombieri: finite-dimensional rank-trace viewpoint used in the modern argument.
-- Baluyot–Goldston–Suriajaya–Turnage-Butterbaugh; Goldston–Suriajaya: unconditional form-factor control in the complex-zero setting.
-- Alpöge–Furman (arXiv:2608.13637, 2026): $2/3$ and $0.6725$ unconditional simple critical-line proportions via the compression + rank-trace route.
+Weil (1952) → Montgomery (1973) → Bombieri rank-trace → BGSTB / Goldston–Suriajaya unconditional form factor → Alpöge–Furman (2026) $2/3$ and $0.6725$.
 
-This repository does not claim to improve those analytic constants. It claims a **reproducible, gated, floating-point-aware implementation** of the discrete side, plus a **documented account of what still fails** when one tries to promote the same matrix $R$ to a polylogarithmic quantum spectral projector.
+This toolkit does not improve those constants. It ships a gated discrete implementation and a documented account of what still fails on the way to polylog quantum spectral projection.
 
 ---
 
-## 10. License
+## 10. Method notes (discrete)
 
-Research code. Individual files may carry additional notices. No warranty. If you use the certificates, keep the directed-rounding and Jacobi margins; stripping them reintroduces the exact failure modes the gate was built to catch.
+Montgomery–Taylor window on $[-1,1]$; weighted sinc Gram; $\delta(\alpha)$ realised as $c_0 I$ with $c_0=1$ so discrete $\rho$ clears $0.6725$. Trace under `FE_DOWNWARD`, HS-norm under `FE_UPWARD`. Jacobi on a private copy; positivity after Gershgorin residual. Before contact, $\rho\approx 0.29$ vs $n_+\approx 0.74$–$0.84$ — Cauchy–Schwarz slack; Jacobi recovers the count.
+
+---
+
+## 11. Method notes (quantum limits)
+
+Circulant-QFT keeps $\alpha_C=O(1)$ for non-negative symbols; $C_U=O(\log^2 N)$ in the sketch. Obstructions: vanishing gap without contact; degree formula with $C=1$ below Zolotarev and GSLW. Policy uses $C=1$ as a *budget filter*; SMT prune with $C=4$ excludes cells where constructive QSVT cannot meet QueryCap. Berry–Keating script is classical linear algebra, not a runtime claim.
+
+---
+
+## 12. Verification philosophy
+
+**Layer A** — external analytic theorems (Alpöge–Furman, BGSTB).  
+**Layer B** — discrete numerical certificates (this repo; exit codes, not prose).  
+**Layer C** — complexity envelopes with *named holes* (FP ceiling, $C=1$), encoded in Alloy/SMT.
+
+We claim Layer B works and Layer C is instrumented. We do **not** claim end-to-end polylog quantum projection of simple zeta zeros.
+
+---
+
+## 13. Reproduce contact-mass table
+
+```python
+import math, torch
+torch.set_default_dtype(torch.float64)
+def psi_mt(u):
+    au = u.abs()
+    return (1-au)*torch.cos(math.pi*u)+torch.sin(math.pi*au)/math.pi
+def build(N, c0=1.0, c=1.35, q=4096):
+    u = torch.linspace(-1+1/q, 1-1/q, q)
+    g = psi_mt(u)**2 * (1-0.5*u.abs())
+    d = torch.arange(N, dtype=torch.float64)[:,None]
+    t = (g*torch.cos((math.pi/c)*d*u[None,:])).sum(1)*(2/q)
+    idx = torch.arange(N)
+    return t[(idx[:,None]-idx[None,:]).abs()] + c0*torch.eye(N)
+for N in [64,128,256,512,1024]:
+    T = build(N)
+    tr, hs2 = torch.trace(T).item(), torch.sum(T*T).item()
+    print(N, round((tr*tr)/(N*hs2),4), round((torch.linalg.eigvalsh(T)>1e-12).sum().item()/N,4))
+```
+
+Expect $\rho\in[0.77,0.78]$, $n_+/N=1$.
+
+---
+
+## 14. Roadmap (closes stated gaps only)
+
+| Priority | Item |
+|----------|------|
+| P0 | Directed-up or rational arithmetic in policy ceiling |
+| P0 | $C\ge 4/\pi$ (ideally GSLW $\approx 4$) in policy + SMT |
+| P1 | CI fails outside SMT-safe $(\alpha,g)$ cells |
+| P1 | Machine-checked UUie directed-rounding proof |
+| P2 | Calibrate $c_0(T)$ to explicit-formula diagonal |
+| P3 | Analytic $|\alpha|>1$ (external) |
+
+---
+
+## 15. Status line
+
+**Classical discrete certificates: operational.**  
+**Hard gate against non-executable synthesis: operational.**  
+**Quantum polylog projection of simple zeta zeros: not claimed; gaps named, modelled, partially SMT-pruned.**
+
+## License
+
+Research code. No warranty. Keep directed-rounding and Jacobi margins if you reuse certificates.
