@@ -1,0 +1,45 @@
+:" weil_horn.kg — Pure Klong Toeplitz/Hankel Weil Compression & Residual "
+.l("math.kg")
+
+pi::3.141592653589793
+
+:" Stable sinc(x) "
+sinc::{:[1e-8>#x; 1-((x^2)%6)+(x^4)%120; (sin(x))%x]}
+
+:" Equispaced grid u in [-1, 1] of length n "
+grid::{(-1)+(2*!x)%(x-1)}
+
+:" Compactly supported even cosine-tapered window psi(u; a, b) "
+psi::{[u a b]; u::x; a::y; b::z; (1-(u^2))*(1+(a*cos(pi*u))+(b*cos(2*pi*u)))}
+
+:" Toeplitz sinc-Gram compression R_ij = sinc(pi*(u_i - u_j)) * w_i * w_j "
+compress::{[u w diff S W];
+  u::x; w::y;
+  diff::pi*(u-:\u);
+  S::sinc''diff;
+  W::w*:\w;
+  S*W}
+
+:" Klong-side trace, Hilbert-Schmidt norm^2, and rank-trace residual "
+trace::{+/{(x@y)@y}[x;]'!#x}
+hs2::{+/+/x*x}
+ratio::{[tr h n]; n::#x; tr::trace(x); h::hs2(x); (tr^2)%(n*h)}
+residual::{[tr h]; tr::trace(x); h::hs2(x); (tr^2)%h}
+
+:" Emit flat matrix to file for UUie directed-rounding certification "
+emit::{[f flat];
+  f::.oc(y);
+  flat::,/x;
+  .to(f);
+  {.d(x);.p(" ")}'flat;
+  .tc(f)}
+
+:" Entrypoint: n=128, a=0.35, b=0.05 "
+N::128
+U::grid(N)
+W::psi(U; 0.35; 0.05)
+R::compress(U; W)
+
+.d("klong_ratio: "); .d(ratio(R)); .p("")
+.d("klong_nplus_bound: "); .d(residual(R)); .p("")
+emit(R; "matrix_R.dat")
