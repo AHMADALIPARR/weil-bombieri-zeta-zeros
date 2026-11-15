@@ -21,7 +21,7 @@ qsvt_polylog_cert(N, AlphaC, GapR, MaxQueries) :-
         (
             qsvt_validate_query_output(MaxQueries),
             qsvt_build_report(N, AlphaC, GapR, Report),
-            MaxQueries = Report.query_envelope
+            get_dict(query_envelope, Report, MaxQueries)
         )
     ).
 
@@ -201,39 +201,3 @@ verified_weil_quantum_witness(
     qsvt_polylog_cert(
         N, 2.70, 0.05, MaxQueries
     ).
-
-
-/* ---------- legacy classical certificates (kept for compatibility) ---------- */
-
-:- op(1200, xfx, '<-').
-
-prove(true, trivial).
-prove((A, B), pair(PA, PB)) :- prove(A, PA), prove(B, PB).
-prove(Goal, Term) :-
-    (Goal <- Body),
-    prove(Body, SubProof),
-    Goal =.. [Pred | _],
-    atom_concat(Pred, '_intro', Ctor),
-    Term =.. [Ctor, SubProof].
-
-simple_critical(RhoLower) <-
-    compression(Psi, Grid, R),
-    unit_band(Psi),
-    conjugate_sym(R),
-    stable(R),
-    rank_trace_cert(_, _, _, RhoLower, _, _, valid),
-    RhoLower > 0.6725.
-
-simple_critical_exact(RhoLower, Nplus, N) <-
-    compression(Psi, Grid, R),
-    unit_band(Psi),
-    conjugate_sym(R),
-    stable(R),
-    rank_trace_cert(N, _, _, RhoLower, Nplus, _, valid),
-    RhoLower > 0.6725,
-    Nplus > 0.6725 * N.
-
-distinct(RhoD) <-
-    simple_critical(RhoS),
-    RhoD is (3.0 - (1.0 / RhoS)) / 2.0,
-    RhoD > 0.8333333333333334.
