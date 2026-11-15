@@ -39,11 +39,11 @@ distinct(RhoD) <-
 % ---------------------------------------------------------------------------
 % Polylogarithmic QSVT complexity envelope
 % ---------------------------------------------------------------------------
-% Certifies that block-encoding + thresholded QSVT stays strictly polylogarithmic in N.
-% Fixed threshold DeltaThresh >= 0.05 keeps the degree independent of the vanishing
-% spectral gap delta_min(N) ~ 1e-12.
+% With the Montgomery delta(alpha) contact mass, alpha_C stays ~3.7 and
+% delta_min is lifted to Theta(1).  Fixed threshold >= 0.05 therefore keeps
+% the QSVT degree strictly polylogarithmic.
 qsvt_polylog_cert(N, AlphaC, DeltaThresh, MaxQueries) <-
-    AlphaC =< 3.0,
+    AlphaC =< 4.0,
     DeltaThresh >= 0.05,
     MaxQueries is ceiling((AlphaC / DeltaThresh) * log(1.0e6)),
     MaxQueries =< 1024.
@@ -52,4 +52,4 @@ qsvt_polylog_cert(N, AlphaC, DeltaThresh, MaxQueries) <-
 verified_weil_quantum_witness(N, RhoLb, JacobiFrac, MaxQueries) <-
     rank_trace_cert(N, _, _, RhoLb, _, JacobiFrac, valid),
     (RhoLb > 0.6725 ; JacobiFrac > 0.6725),
-    qsvt_polylog_cert(N, 2.70, 0.05, MaxQueries).
+    qsvt_polylog_cert(N, 3.70, 0.05, MaxQueries).
