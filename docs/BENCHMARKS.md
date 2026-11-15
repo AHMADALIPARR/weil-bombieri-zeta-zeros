@@ -1,14 +1,12 @@
 # Measured benchmarks
 
-All tables produced by `quantum/block_encoding_audit.py` and the same Toeplitz generator used in Klong, IEEE-754 binary64, November 2026.
+All tables produced by `quantum/block_encoding_audit.py`, `quantum/sparse_lcu.py`, and the same Toeplitz generator used in Klong, IEEE-754 binary64, November 2026.
 
 Companion to the main [README](../README.md).
 
 ---
 
 ## 1. Continuous Montgomery–Taylor symbol only (no contact mass)
-
-Cauchy–Schwarz is loose when eigenvalues decay. Analytic $\rho$ stalls near $0.29$; Jacobi still sees a large positive fraction.
 
 | $N$ | $\rho_{\mathrm{lb}}$ | $n_+/N$ | $\delta_{\min}$ | $\alpha_C$ | $\alpha_{\mathrm{LCU}}$ | $C_U$ | $q(0.05)$ | $q(\delta_{\min})$ |
 |------:|------------------------:|----------:|------------------:|-------------:|--------------------------:|-------:|-----------:|---------------------:|
@@ -21,34 +19,53 @@ Cauchy–Schwarz is loose when eigenvalues decay. Analytic $\rho$ stalls near $0
 
 ---
 
-## 2. Same symbol + Montgomery $\delta(\alpha)$ contact $c_0 I$ ($c_0=1$)
+## 2. Contact $c_0=1$
 
-| $N$ | $\rho_{\mathrm{lb}}$ | $n_+/N$ | $\delta_{\min}$ | $\alpha_C$ | $\alpha_{\mathrm{LCU}}$ | $C_U$ | $q(0.05)$ | $q(\delta_{\min})$ | $q_{\mathrm{Zolotarev}}$ | $q_{\mathrm{GSLW}}$ |
-|------:|------------------------:|----------:|------------------:|-------------:|--------------------------:|-------:|-----------:|-------------------:|-------------------------:|--------------------:|
-| 32 | 0.7788 | 1.0000 | 1.00 | 3.6882 | 3.6882 | 2566 | 1020 | 51 | 1298 | 4077 |
-| 64 | 0.7746 | 1.0000 | 1.00 | 3.6942 | 3.6942 | 2584 | 1021 | 52 | 1300 | 4083 |
-| 128 | 0.7726 | 1.0000 | 1.00 | 3.6971 | 3.6971 | 2604 | 1022 | 52 | 1301 | 4087 |
-| 256 | 0.7715 | 1.0000 | 1.00 | 3.6985 | 3.6985 | 2626 | 1022 | 52 | 1302 | 4088 |
-| 512 | 0.7710 | 1.0000 | 1.00 | 3.6993 | 3.6993 | 2650 | 1023 | 52 | 1302 | 4089 |
-| 1024 | 0.7708 | 1.0000 | 1.00 | 3.6996 | 3.6996 | 2676 | 1023 | 52 | 1302 | 4089 |
-
-$q_{\mathrm{Zolotarev}}$ uses $C=4/\pi$; $q_{\mathrm{GSLW}}$ uses $C=4$; both at fixed gap $0.05$, $\varepsilon=10^{-6}$.
+| $N$ | $\rho_{\mathrm{lb}}$ | $n_+/N$ | $\delta_{\min}$ | $\alpha_C$ | $C_U$ | $q(0.05)$ | $q(\delta_{\min})$ | $q_{\mathrm{Zolotarev}}$ | $q_{\mathrm{GSLW}}$ |
+|------:|------------------------:|----------:|------------------:|-------------:|-------:|-----------:|-------------------:|-------------------------:|--------------------:|
+| 32 | 0.7788 | 1.0000 | 1.00 | 3.6882 | 2566 | 1020 | 51 | 1298 | 4077 |
+| 64 | 0.7746 | 1.0000 | 1.00 | 3.6942 | 2584 | 1021 | 52 | 1300 | 4083 |
+| 128 | 0.7726 | 1.0000 | 1.00 | 3.6971 | 2604 | 1022 | 52 | 1301 | 4087 |
+| 256 | 0.7715 | 1.0000 | 1.00 | 3.6985 | 2626 | 1022 | 52 | 1302 | 4088 |
+| 512 | 0.7710 | 1.0000 | 1.00 | 3.6993 | 2650 | 1023 | 52 | 1302 | 4089 |
+| 1024 | 0.7708 | 1.0000 | 1.00 | 3.6996 | 2676 | 1023 | 52 | 1302 | 4089 |
 
 ---
 
-## 3. Contact effect at $N=1024$
+## 3. Sparse LCU truncation (`quantum/sparse_lcu.py`)
 
-| Quantity | No contact | Contact $c_0=1$ | Change |
-|----------|------------|-----------------|--------|
-| $\rho_{\mathrm{lb}}$ | 0.2887 | 0.7708 | $\times 2.67$ |
-| $n_+/N$ | 0.7432 | 1.0000 | $+0.2568$ |
-| $\delta_{\min}$ | $1.97\times 10^{-12}$ | $1.00$ | $\times\sim 5\times 10^{11}$ |
-| $\alpha_C$ | 2.6996 | 3.6996 | $+1$ |
-| $q(\delta_{\min})$ | $\sim 3.73\times 10^{10}$ | 52 | $\times\sim 7\times 10^{-10}$ |
+Empirical coefficient decay $|t_d|\sim d^{-2.16}$. Full $\alpha_{\mathrm{LCU}}\approx 2.699$ at $N=256$.
+
+### Bandwidth sweep $N=256$ (no contact)
+
+| $K$ | $\|T-T_K\|_2$ | $\|T-T_K\|_F$ | nnz frac | $\alpha_K$ | terms |
+|------:|----------------:|----------------:|---------:|-----------:|------:|
+| 1 | $1.23$ | $8.16$ | 0.012 | 1.467 | 2 |
+| 2 | $0.597$ | $4.02$ | 0.019 | 2.097 | 3 |
+| 4 | $0.138$ | $0.642$ | 0.035 | 2.557 | 5 |
+| 8 | $4.43\times 10^{-2}$ | $0.119$ | 0.065 | 2.651 | 9 |
+| 12 | $2.64\times 10^{-2}$ | $5.81\times 10^{-2}$ | 0.095 | 2.669 | 13 |
+| **16** | **$1.85\times 10^{-2}$** | **$3.62\times 10^{-2}$** | **0.125** | **2.677** | **17** |
+| 24 | $1.09\times 10^{-2}$ | $1.89\times 10^{-2}$ | 0.182 | 2.685 | 25 |
+| 32 | $7.30\times 10^{-3}$ | $1.19\times 10^{-2}$ | 0.238 | 2.689 | 33 |
+| 64 | $2.33\times 10^{-3}$ | $3.71\times 10^{-3}$ | 0.440 | 2.694 | 65 |
+| 128 | $5.16\times 10^{-4}$ | $9.23\times 10^{-4}$ | 0.752 | 2.697 | 129 |
+
+### Threshold example
+
+`tau=1e-3` at $N=256$: $\mathrm{err}_2=2.18\times 10^{-2}$, 15 one-sided terms, $\alpha_K=2.673$.
+
+```bash
+python quantum/sparse_lcu.py --N 256 --sweep
+python quantum/sparse_lcu.py --N 256 --K 16
+python quantum/sparse_lcu.py --N 256 --tau 1e-3
+```
+
+Circulant-QFT remains preferred for zero truncation error at $O(\log^2 N)$ gate cost.
 
 ---
 
-## 4. Sparse LCU truncation $\|T-T_K\|_2$ at $K=16$
+## 4. Sparse LCU truncation $\|T-T_K\|_2$ at $K=16$ (vs $N$)
 
 | $N$ | No contact | Contact |
 |------:|-----------:|--------:|
@@ -63,8 +80,8 @@ $q_{\mathrm{Zolotarev}}$ uses $C=4/\pi$; $q_{\mathrm{GSLW}}$ uses $C=4$; both at
 
 ## 5. Circulant-QFT gate breakdown (contact, $\varepsilon=10^{-6}$)
 
-| $N$ | $n=\lceil\log_2(2N)\rceil$ | $b$ bits | QFT gates | Oracle gates | $C_U$ total |
-|------:|---------------------------:|---------:|----------:|-------------:|------------:|
+| $N$ | $n$ | $b$ | QFT | Oracle | $C_U$ |
+|------:|----:|----:|----:|-------:|------:|
 | 64 | 7 | 25 | 42 | 2542 | 2584 |
 | 128 | 8 | 25 | 56 | 2548 | 2604 |
 | 256 | 9 | 25 | 72 | 2554 | 2626 |
@@ -75,63 +92,32 @@ $q_{\mathrm{Zolotarev}}$ uses $C=4/\pi$; $q_{\mathrm{GSLW}}$ uses $C=4$; both at
 
 ## 6. $\alpha_C = \alpha_{\mathrm{LCU}}$ identity
 
-| $N$ | No contact $\alpha_C$ | No contact $\alpha_{\mathrm{LCU}}$ | Contact $\alpha_C$ | Contact $\alpha_{\mathrm{LCU}}$ |
-|------:|----------------------:|----------------------------------:|-------------------:|-------------------------------:|
-| 64 | 2.6942 | 2.6942 | 3.6942 | 3.6942 |
-| 128 | 2.6971 | 2.6971 | 3.6971 | 3.6971 |
-| 256 | 2.6985 | 2.6985 | 3.6985 | 3.6985 |
-| 512 | 2.6993 | 2.6993 | 3.6993 | 3.6993 |
-| 1024 | 2.6996 | 2.6996 | 3.6996 | 3.6996 |
-
-Non-negative Fourier coefficients $\Rightarrow$ peak circulant eigenvalue equals full $\ell_1$ LCU norm.
+| $N$ | No contact | Contact |
+|------:|-----------:|--------:|
+| 64 | 2.6942 = 2.6942 | 3.6942 = 3.6942 |
+| 128 | 2.6971 = 2.6971 | 3.6971 = 3.6971 |
+| 1024 | 2.6996 = 2.6996 | 3.6996 = 3.6996 |
 
 ---
 
-## 7. Degree landscape at gap $g=0.05$, $\varepsilon=10^{-6}$
+## 7. Degree landscape ($g=0.05$, $\varepsilon=10^{-6}$)
 
-| $\alpha_C$ | $C=1$ (policy) | $C=4/\pi$ (Zolotarev) | $C=4$ (GSLW) | Under QueryCap 1024? |
-|-----------:|-----------------:|----------------------:|-------------:|----------------------|
-| 1.0 | 277 | 352 | 1106 | $C=1$ only |
-| 1.5 | 415 | 528 | 1658 | $C=1$ only |
-| 2.0 | 553 | 704 | 2211 | $C=1$ only |
-| 2.7 | 747 | 950 | 2985 | $C=1$ only |
-| 3.0 | 829 | 1056 | 3316 | $C=1$ only; Zolotarev already $>1024$ |
-
----
-
-## 8. Policy predicate results (SWI-Prolog 9.0.4)
-
-| Query | Result | Reason |
-|-------|--------|--------|
-| `(1e6, 2.70, 0.05, Q)` | `Q = 747` | Inside envelope |
-| `(1e6, 3.0, 0.05, Q)` | `Q = 829` | AlphaCap boundary |
-| `(1e6, 3.01, 0.05, _)` | `false` | Above AlphaCap |
-| `(1e6, 2.70, 0.049, _)` | `false` | Below GapFloor |
-| `(1e6, 2.70, 0.05, 1024)` | `false` | Wrong pre-bound count |
-| `(0, 2.70, 0.05, _)` | throws `domain_error(positive_integer, 0)` | Invalid domain |
-| `(100, 0, 0.05, _)` | throws `domain_error(positive_normalization, 0)` | Invalid domain |
-| `(100, 2.70, 0, _)` | throws `domain_error(positive_spectral_gap, 0)` | Invalid domain |
+| $\alpha_C$ | $C=1$ | $C=4/\pi$ | $C=4$ |
+|-----------:|------:|----------:|------:|
+| 1.0 | 277 | 352 | 1106 |
+| 2.0 | 553 | 704 | 2211 |
+| 2.7 | 747 | 950 | 2985 |
+| 3.0 | 829 | 1056 | 3316 |
 
 ---
 
-## 9. Degree formulae at reference $(\alpha_C,g,\varepsilon)=(2.70,0.05,10^{-6})$
+## 8. Policy predicate (SWI-Prolog 9.0.4)
 
-| Formula | Prefactor $C$ | Degree | vs QueryCap 1024 |
-|---------|----------------|--------|------------------|
-| Prolog policy ($C=1$, unproved) | 1.0000 | **747** | passes |
-| Zolotarev / Eremenko–Yuditskii LB | $4/\pi\approx 1.2732$ | **$\approx 950$** | exceeds 747 |
-| Constructive GSLW | $\approx 4$ | **$\approx 2985$** | exceeds QueryCap |
-
----
-
-## 10. IEEE-754 RNE vs RTP
-
-```
-$ z3 formal/fp_rounding_witness.smt2
-sat
-```
-
-Concrete normal binary64 $\alpha,g$ with $\mathrm{RNE}(\alpha/g)<\mathrm{RTP}(\alpha/g)$.
+| Query | Result |
+|-------|--------|
+| `(1e6, 2.70, 0.05, Q)` | `Q = 747` |
+| `(1e6, 3.01, 0.05, _)` | `false` |
+| `(0, 2.70, 0.05, _)` | throws `domain_error` |
 
 ---
 
@@ -139,5 +125,6 @@ Concrete normal binary64 $\alpha,g$ with $\mathrm{RNE}(\alpha/g)<\mathrm{RTP}(\a
 
 ```bash
 python3 quantum/block_encoding_audit.py
+python3 quantum/sparse_lcu.py --N 256 --sweep
 z3 formal/fp_rounding_witness.smt2
 ```
