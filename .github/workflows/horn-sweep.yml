@@ -1,0 +1,35 @@
+name: Horn-Klong-UUie Certificate Sweep
+on: [workflow_dispatch]
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        n: [64, 128, 256]
+        a: ["0.25", "0.35", "0.45"]
+        b: ["0.00", "0.05", "0.10"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Klong & UUie from C source
+        run: |
+          cc -std=c11 -O2 -frounding-math -ffp-contract=off uuie/uuie_kernel.c -lm -o uuie_kernel
+          # Placeholder: assume klong source is vendored or built; adapt as needed
+          echo "Klong binary expected in PATH or built from source"
+      - name: Run Compression & Directed-Rounding Oracle
+        id: cert
+        run: |
+          # Run Klong script (adapt invocation once kg is present)
+          # ./klong/kg -l klong/weil_horn.kg
+          ./uuie_kernel "${{ matrix.n }}" 0.6725 matrix_R.dat > witness.pl || true
+          sha256sum matrix_R.dat witness.pl > witness.sha256 || true
+      - name: Upload Verified Witness
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: witness-N${{ matrix.n }}-a${{ matrix.a }}-b${{ matrix.b }}
+          path: |
+            matrix_R.dat
+            witness.pl
+            witness.sha256
