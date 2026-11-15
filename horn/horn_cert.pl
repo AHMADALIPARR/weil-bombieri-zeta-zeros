@@ -3,39 +3,38 @@
 /*
  * qsvt_polylog_cert(+N, +AlphaC, +GapR, ?MaxQueries)
  *
- * Checks the proposed numerical query envelope:
+ * Throws:
+ *   - Instantiation/type errors for invalid argument modes or types.
+ *   - Domain errors for invalid physical parameters.
+ *   - Contextualized arithmetic errors.
  *
- *   ceil((AlphaC / GapR) * ln(1 / Eps)) =< QueryCap
+ * Fails:
+ *   - Valid parameters exceed the configured envelope.
+ *   - A valid, pre-bound MaxQueries differs from the computed value.
  *
- * GapR is a gap of the ORIGINAL matrix R.
- * If the gap is already normalized by AlphaC, do not divide by
- * AlphaC again.
- *
- * MaxQueries is unified with the computed envelope, not with
- * the fixed cap of 1024.
- *
- * This is a conditional budget check, not an independent
- * mathematical certificate of an actual QSVT implementation.
+ * Success is a conditional numerical budget check only.
  */
 
 qsvt_polylog_cert(N, AlphaC, GapR, MaxQueries) :-
-    qsvt_polylog_report(N, AlphaC, GapR, Report),
-    MaxQueries = Report.query_envelope.
+    qsvt_with_context(
+        qsvt_polylog_cert/4,
+        (
+            qsvt_validate_query_output(MaxQueries),
+            qsvt_build_report(N, AlphaC, GapR, Report),
+            MaxQueries = Report.query_envelope
+        )
+    ).
 
-
-/*
- * qsvt_polylog_report(+N, +AlphaC, +GapR, -Report)
- *
- * Throws for uninstantiated, incorrectly typed, or non-finite
- * input arguments.
- *
- * Fails for well-typed inputs outside the accepted envelope.
- */
 
 qsvt_polylog_report(N, AlphaC, GapR, Report) :-
-    must_be(positive_integer, N),
-    qsvt_finite_number(AlphaC),
-    qsvt_finite_number(GapR),
+    qsvt_with_context(
+        qsvt_polylog_report/4,
+        qsvt_build_report(N, AlphaC, GapR, Report)
+    ).
+
+
+qsvt_build_report(N, AlphaC, GapR, Report) :-
+    qsvt_validate_inputs(N, AlphaC, GapR),
 
     qsvt_envelope_policy(
         AlphaCap,
@@ -44,16 +43,24 @@ qsvt_polylog_report(N, AlphaC, GapR, Report) :-
         QueryCap
     ),
 
-    AlphaC > 0,
+    % Valid inputs outside policy fail, rather than throw.
     AlphaC =< AlphaCap,
     GapR >= GapFloor,
-    GapR =< AlphaC,
 
-    NormalizedGap is GapR / AlphaC,
-    QueryEnvelope is ceiling(
-        (AlphaC / GapR) * log(1 / Eps)
-    ),
+    % Calculate alpha/gap first, avoiding premature underflow
+    % from calculating gap/alpha.
+    InverseGap is AlphaC / GapR,
+    qsvt_require_positive_finite(InverseGap),
+
+    LogInverseError is -log(Eps),
+    RawQueries is InverseGap * LogInverseError,
+    qsvt_require_positive_finite(RawQueries),
+
+    QueryEnvelope is ceiling(RawQueries),
     QueryEnvelope =< QueryCap,
+
+    NormalizedGap is 1 / InverseGap,
+    qsvt_require_positive_finite(NormalizedGap),
 
     Report = qsvt_envelope{
         n: N,
@@ -67,12 +74,50 @@ qsvt_polylog_report(N, AlphaC, GapR, Report) :-
     }.
 
 
-qsvt_envelope_policy(
-    3.0,       % Maximum supplied normalization
-    0.05,      % Minimum supplied physical gap
-    1.0e-6,    % Target polynomial approximation error
-    1024       % Query-envelope cap
-).
+qsvt_validate_inputs(N, AlphaC, GapR) :-
+    must_be(integer, N),
+    (   N >= 1
+    ->  true
+    ;   domain_error(positive_integer, N)
+    ),
+
+    qsvt_finite_number(AlphaC),
+    qsvt_finite_number(GapR),
+
+    (   AlphaC > 0
+    ->  true
+    ;   domain_error(positive_normalization, AlphaC)
+    ),
+
+    (   GapR > 0
+    ->  true
+    ;   domain_error(positive_spectral_gap, GapR)
+    ),
+
+    (   GapR =< AlphaC
+    ->  true
+    ;   domain_error(
+            gap_not_exceeding_normalization,
+            gap_and_normalization(GapR, AlphaC)
+        )
+    ).
+
+
+/*
+ * An unbound output is allowed.
+ * A pre-bound output must be a nonnegative integer.
+ * A well-typed but incorrect count subsequently fails by unification.
+ */
+
+qsvt_validate_query_output(MaxQueries) :-
+    (   var(MaxQueries)
+    ->  true
+    ;   must_be(integer, MaxQueries),
+        (   MaxQueries >= 0
+        ->  true
+        ;   domain_error(nonnegative_integer, MaxQueries)
+        )
+    ).
 
 
 qsvt_finite_number(X) :-
@@ -85,6 +130,46 @@ qsvt_finite_number(X) :-
         )
     ;   true
     ).
+
+
+/*
+ * Handles both explicit non-finite results and zero produced
+ * by underflow when the runtime permits those results.
+ */
+
+qsvt_require_positive_finite(X) :-
+    qsvt_finite_number(X),
+    (   X > 0
+    ->  true
+    ;   evaluation_error(underflow)
+    ).
+
+
+/*
+ * Add the public predicate's identity without hiding the
+ * original error category, including evaluation_error/1.
+ * Ordinary failure is not converted into an exception.
+ */
+
+qsvt_with_context(Predicate, Goal) :-
+    catch(
+        call(Goal),
+        error(Formal, OriginalContext),
+        throw(
+            error(
+                Formal,
+                context(Predicate, OriginalContext)
+            )
+        )
+    ).
+
+
+qsvt_envelope_policy(
+    3.0,
+    0.05,
+    1.0e-6,
+    1024
+).
 
 
 /*
