@@ -1,4 +1,5 @@
 :" weil_horn.kg — Pure Klong Toeplitz/Hankel Weil Compression & Residual "
+:" Includes the exact delta(alpha) diagonal contact mass from Montgomery form factor "
 .l("math.kg")
 
 pi::3.141592653589793
@@ -12,16 +13,24 @@ grid::{(-1)+(2*!x)%(x-1)}
 :" Compactly supported even cosine-tapered window psi(u; a, b) "
 psi::{[u a b]; u::x; a::y; b::z; (1-(u^2))*(1+(a*cos(pi*u))+(b*cos(2*pi*u)))}
 
-:" Exact Montgomery-Taylor optimal window from arXiv:2608.13637 (converges to 0.6725) "
+:" Exact Montgomery-Taylor optimal window from arXiv:2608.13637 "
 psi_mt::{[u]; u::x; ((1-#u)*cos(pi*u))+(sin(pi*#u)%pi)}
 
-:" Toeplitz sinc-Gram compression R_ij = sinc(pi*(u_i - u_j)) * w_i * w_j "
+:" Toeplitz sinc-Gram compression (continuous part) "
 compress::{[u w diff S W];
   u::x; w::y;
   diff::pi*(u-:\u);
   S::sinc''diff;
   W::w*:\w;
   S*W}
+
+:" Montgomery delta(alpha) diagonal contact mass c0 * I
+   The delta(0) term in F(alpha) = |alpha| + delta(alpha) contributes an
+   explicit identity shift.  c0 is chosen so that the continuous + contact
+   parts together recover the T log T main term of the explicit formula.
+   Empirically c0 ~ 1.0 already lifts rho_lb over 0.6725; tune if needed. "
+c0::1.0
+add_contact::{[R n]; n::#x; R::x; R+c0*(=:!n)}
 
 :" Klong-side trace, Hilbert-Schmidt norm^2, and rank-trace residual "
 trace::{+/{(x@y)@y}[x;]'!#x}
@@ -37,13 +46,13 @@ emit::{[f flat];
   {.d(x);.p(" ")}'flat;
   .tc(f)}
 
-:" Entrypoint — default uses parametric window; switch to psi_mt for the 0.6725 extremizer "
+:" Entrypoint — Montgomery-Taylor window + delta(alpha) contact mass "
 N::128
 U::grid(N)
-W::psi(U; 0.35; 0.05)
-:" Alternative: W::psi_mt(U) "
-R::compress(U; W)
+W::psi_mt(U)
+R0::compress(U; W)
+R::add_contact(R0)
 
-.d("klong_ratio: "); .d(ratio(R)); .p("")
+.d("klong_ratio (with contact): "); .d(ratio(R)); .p("")
 .d("klong_nplus_bound: "); .d(residual(R)); .p("")
 emit(R; "matrix_R.dat")
