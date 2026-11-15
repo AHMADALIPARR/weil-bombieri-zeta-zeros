@@ -109,6 +109,35 @@ Threshold $\tau=10^{-3}$: $\mathrm{err}_2=2.18\times 10^{-2}$, 15 terms, $\alpha
 
 **Recommendation:** Circulant-QFT stays the zero-truncation block-encoding ($\alpha_C=\alpha_{\mathrm{LCU}}$, $O(\log^2 N)$). Sparse LCU is the baseline when you want fewer explicit diagonals (classical sparsifier for UUie, or shallow SELECT).
 
+### Code snippet
+
+```python
+from quantum.sparse_lcu import (
+    toeplitz_first_column,
+    build_toeplitz,
+    truncate_bandwidth,
+    truncate_threshold,
+    coefficient_decay,
+)
+
+N, K = 256, 16
+t = toeplitz_first_column(N, c0=0.0)   # MT Fourier coeffs (+ optional contact)
+T = build_toeplitz(t)                 # dense Hermitian Toeplitz
+
+Tk, rep = truncate_bandwidth(T, t, K)
+print(f"K={K}:  ||T-Tk||_2 = {rep.err_2:.4e}")
+print(f"       nnz        = {rep.nnz_frac:.4f}")
+print(f"       alpha_K    = {rep.alpha_sparse:.6f}")
+print(f"       terms      = {rep.n_terms}")
+print(f"decay |t_d|~d^(-b), b ≈ {coefficient_decay(t):.3f}")
+
+# magnitude truncation instead of fixed bandwidth
+Tk2, rep2 = truncate_threshold(T, t, tau=1e-3)
+print(f"tau=1e-3: err_2={rep2.err_2:.4e}  terms={rep2.n_terms}")
+```
+
+CLI:
+
 ```bash
 python quantum/sparse_lcu.py --N 256 --sweep
 python quantum/sparse_lcu.py --N 256 --K 16
