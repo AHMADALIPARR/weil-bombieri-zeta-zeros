@@ -12,6 +12,9 @@ grid::{(-1)+(2*!x)%(x-1)}
 :" Compactly supported even cosine-tapered window psi(u; a, b) "
 psi::{[u a b]; u::x; a::y; b::z; (1-(u^2))*(1+(a*cos(pi*u))+(b*cos(2*pi*u)))}
 
+:" Exact Montgomery-Taylor optimal window from arXiv:2608.13637 (converges to 0.6725) "
+psi_mt::{[u]; u::x; ((1-#u)*cos(pi*u))+(sin(pi*#u)%pi)}
+
 :" Toeplitz sinc-Gram compression R_ij = sinc(pi*(u_i - u_j)) * w_i * w_j "
 compress::{[u w diff S W];
   u::x; w::y;
@@ -34,10 +37,11 @@ emit::{[f flat];
   {.d(x);.p(" ")}'flat;
   .tc(f)}
 
-:" Entrypoint: n=128, a=0.35, b=0.05 "
+:" Entrypoint — default uses parametric window; switch to psi_mt for the 0.6725 extremizer "
 N::128
 U::grid(N)
 W::psi(U; 0.35; 0.05)
+:" Alternative: W::psi_mt(U) "
 R::compress(U; W)
 
 .d("klong_ratio: "); .d(ratio(R)); .p("")
