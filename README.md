@@ -6,7 +6,7 @@ This repository implements the discrete side of the Alpöge–Furman argument (a
 
 It is a certificate engine and a complexity truth-serum. It is not a zero factory and it does not claim a quantum algorithm that extracts individual ordinates in polylog time.
 
-**Full measured tables:** [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) (truncation error, gate breakdown, extended $N$ grid, degree landscape $C=1$ vs $4/\pi$ vs $4$, $\alpha_C=\alpha_{\mathrm{LCU}}$ identity, policy results).
+**Full measured tables:** [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) (truncation error, gate breakdown, extended $N$ grid, degree landscape $C=1$ vs $4/\pi$ vs $4$, $\alpha_C=\alpha_{\mathrm{LCU}}$ identity, policy results, sparse LCU $K$-sweep).
 
 ---
 
@@ -56,6 +56,7 @@ Unconditional form-factor control for $|\alpha|\le 1$ (BGSTB / Goldston–Suriaj
 | `horn/horn_cert.pl` | Hardened policy + Horn rules | operational |
 | `harness/gate.py` | LLM → kernel → kg → UUie; prose rejected | operational |
 | `quantum/block_encoding_audit.py` | Circulant-QFT / LCU / QSVT degrees | operational |
+| `quantum/sparse_lcu.py` | **Bandwidth + threshold LCU truncation** | operational |
 | `formal/fp_rounding_witness.smt2` | QF_FP RNE $<$ RTP | **sat** |
 | `formal/recursive_manifold_prune.py` | QF_NRA manifold pruner | operational |
 | `docs/BENCHMARKS.md` | **Complete measured tables** | docs |
@@ -78,11 +79,45 @@ See **[`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)** for full tables. Headline num
 | $C=4/\pi$ (Zolotarev LB) | $\approx 950$ | exceeds 747 |
 | $C=4$ (GSLW) | $\approx 2985$ | exceeds QueryCap |
 
-$\alpha_C=\alpha_{\mathrm{LCU}}$ at every measured $N$. Sparse truncation $K=16$ leaves $\|T-T_K\|_2\sim 10^{-2}$. Gate sketch $C_U\sim 2600$ at $N=128$, $O(\log^2 N)$.
+$\alpha_C=\alpha_{\mathrm{LCU}}$ at every measured $N$. Gate sketch $C_U\sim 2600$ at $N=128$, $O(\log^2 N)$.
 
 ---
 
-## 4. Proved vs not
+## 4. Sparse LCU truncation
+
+Module: [`quantum/sparse_lcu.py`](quantum/sparse_lcu.py).
+
+The Montgomery–Taylor Toeplitz coefficients decay empirically as $|t_d|\sim d^{-2.16}$. Two truncation methods:
+
+| Method | API | Keeps |
+|--------|-----|-------|
+| **Bandwidth** | `truncate_bandwidth(T, t_col, K)` | lags $\|d\|\le K$ |
+| **Threshold** | `truncate_threshold(T, t_col, tau)` | $\|t_d\|\ge\tau$ (always $d=0$) |
+
+Each returns spectral error $\|T-T_{\mathrm{sparse}}\|_2$, Frobenius error, nnz fraction, and truncated $\alpha_{\mathrm{LCU},K}$.
+
+**$K$-sweep at $N=256$ (no contact):**
+
+| $K$ | $\|T-T_K\|_2$ | nnz | $\alpha_K$ | terms |
+|------:|----------------:|----:|-----------:|------:|
+| 8 | $4.43\times 10^{-2}$ | 0.065 | 2.651 | 9 |
+| **16** | **$1.85\times 10^{-2}$** | **0.125** | **2.677** | **17** |
+| 32 | $7.30\times 10^{-3}$ | 0.238 | 2.689 | 33 |
+| 64 | $2.33\times 10^{-3}$ | 0.440 | 2.694 | 65 |
+
+Threshold $\tau=10^{-3}$: $\mathrm{err}_2=2.18\times 10^{-2}$, 15 terms, $\alpha_K=2.673$.
+
+**Recommendation:** Circulant-QFT stays the zero-truncation block-encoding ($\alpha_C=\alpha_{\mathrm{LCU}}$, $O(\log^2 N)$). Sparse LCU is the baseline when you want fewer explicit diagonals (classical sparsifier for UUie, or shallow SELECT).
+
+```bash
+python quantum/sparse_lcu.py --N 256 --sweep
+python quantum/sparse_lcu.py --N 256 --K 16
+python quantum/sparse_lcu.py --N 256 --tau 1e-3
+```
+
+---
+
+## 5. Proved vs not
 
 **Proved/enforced:** directed-rounding $\rho$; Jacobi $n_+$ with Gershgorin margin; hard reject of non-executable LLM output; policy type/domain/finite guards; RNE can undercut RTP (Z3 sat); $C=1$ below Zolotarev/GSLW on reference parameters.
 
@@ -90,16 +125,20 @@ $\alpha_C=\alpha_{\mathrm{LCU}}$ at every measured $N$. Sparse truncation $K=16$
 
 ---
 
-## 5. Architecture
+## 6. Architecture
 
 ```
 LLM → <klong_kernel> → gate → kg → matrix_R.dat → uuie
   → rank_trace_cert → Horn classical / qsvt_polylog_cert / smt_manifold_cert
+
+Parallel cost models:
+  block_encoding_audit.py   Circulant-QFT / full LCU
+  sparse_lcu.py             bandwidth / threshold truncation
 ```
 
 ---
 
-## 6. Open problems
+## 7. Open problems
 
 | # | Problem |
 |---|--------|
@@ -112,22 +151,29 @@ LLM → <klong_kernel> → gate → kg → matrix_R.dat → uuie
 
 ---
 
-## 7. Run
+## 8. Run
 
 ```bash
+# Classical certificate
 cc -std=c11 -O2 -frounding-math -ffp-contract=off uuie/uuie_kernel.c -lm -o uuie/uuie_kernel
 kg -l klong/weil_horn.kg
 ./uuie/uuie_kernel 128 0.6725 matrix_R.dat
+
+# Cost models
 python3 quantum/block_encoding_audit.py
+python3 quantum/sparse_lcu.py --N 256 --sweep
+
+# Formal
 z3 formal/fp_rounding_witness.smt2
 ```
 
 ---
 
-## 8. Status
+## 9. Status
 
 **Classical discrete certificates: operational.**  
 **Hard gate: operational.**  
+**Sparse LCU truncation: operational.**  
 **Quantum polylog projection of simple zeros: not claimed; gaps named and measured.**
 
 ## License
