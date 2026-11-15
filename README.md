@@ -21,38 +21,32 @@ and thereby push the unconditional lower bound on the proportion of simple zeros
 | Path | Description |
 |------|-------------|
 | `kernels/weil_probe.bqn` | Starter discretized Toeplitz/Hankel probe (cosine-tapered weights, sinc kernel) |
-| `harness/harness.py` | Zero-bloat PyTorch + Llama-3 + `libcbqn.so` FFI loop (strict XML extraction, deterministic generation) |
-| `prompts/muse_system_contract.xml` | Bare-metal system prompt for the Muse agent (emits pure CBQN kernels only) |
-| `docs/` | Notes on constraints (conjugate symmetry, unit-band support, numerical stability) |
+| `harness/harness.py` | Zero-bloat PyTorch + Llama-3 + `libcbqn.so` FFI loop (legacy) |
+| `prompts/muse_system_contract.xml` | Bare-metal system prompt for the Muse agent |
+| `uuie/uuie_kernel.c` | **Zero-dependency C11 directed-rounding micro-kernel** – certified lower bound on $\rho$ |
+| `klong/weil_horn.kg` | **Pure Klong** Toeplitz/Hankel compression + residual emitter |
+| `horn/horn_cert.pl` | Curry–Howard / SLD Horn verifier that turns UUie ground facts into proof terms |
+| `.github/workflows/horn-sweep.yml` | Stateless GitHub Actions matrix runner for certificate sweeps |
+| `docs/horn-klong-uuie.md` | Full description of the self-contained verification stack |
+| `docs/constraints.md` | Hard constraints (conjugate symmetry, unit-band, stability) |
 
-## Quick Start (CBQN probe)
+## Preferred Verification Path (Horn–Klong–UUie)
 
-```bash
-# Requires a CBQN installation
-cbqn kernels/weil_probe.bqn
-```
+The modern, zero-dependency substrate:
 
-The probe evaluates
+1. Klong builds the discretized window and sinc-Toeplitz Gram matrix $R$.
+2. UUie evaluates a **directed-rounding** lower bound on $\rho = (\operatorname{tr} R)^2 / (N \cdot \|R\|_{\mathrm{HS}}^2)$ (trace under `FE_DOWNWARD`, HS-norm under `FE_UPWARD`).
+3. Successful runs emit a ground Horn fact `rank_trace_cert(...)`.
+4. The Prolog/Horn layer constructs a typed proof term for `simple_critical(Rho)`.
+5. GitHub Actions sweeps the $(N,a,b)$ parameter space and retains only SHA-256-sealed witnesses.
 
-$$
-\frac{(\operatorname{Tr} R)^2}{n \cdot \|R\|_{\mathrm{HS}}^2}
-$$
+See `docs/horn-klong-uuie.md` for compile flags and local usage.
 
-for an $n=128$ cosine-tapered weight vector and a sinc Toeplitz kernel.
+## Constraints Enforced
 
-## Synthesis Loop Outline
-
-1. Build `libcbqn.so` (`make shared-o3` inside a CBQN clone).
-2. Load Llama-3 (or local GGUF) in raw `transformers` / `torch`.
-3. Feed the Muse system contract; parse `<cbqn_kernel>` blocks.
-4. Evaluate the returned scalar via FFI; accept only witnesses with `ratio > 0.6725` that also satisfy the three hard constraints.
-5. Record SHA-256 of successful kernels.
-
-## Constraints Enforced by the Kernel
-
-1. Conjugate symmetry: $R = +\texttt{⍉}R$
+1. Conjugate symmetry: $R = R^\dagger$
 2. Unit-band support truncation on the Fourier grid
-3. Exact rational / floating-point stability (no NaN / Inf)
+3. Exact rational / floating-point stability (no NaN / Inf) + directed-rounding certification
 
 ## License
 
