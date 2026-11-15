@@ -20,33 +20,36 @@ and thereby push the unconditional lower bound on the proportion of simple zeros
 
 | Path | Description |
 |------|-------------|
-| `kernels/weil_probe.bqn` | Starter discretized Toeplitz/Hankel probe (cosine-tapered weights, sinc kernel) |
-| `harness/harness.py` | Zero-bloat PyTorch + Llama-3 + `libcbqn.so` FFI loop (legacy) |
-| `prompts/muse_system_contract.xml` | Bare-metal system prompt for the Muse agent |
-| `uuie/uuie_kernel.c` | **Zero-dependency C11 directed-rounding micro-kernel** – certified lower bound on $\rho$ |
-| `klong/weil_horn.kg` | **Pure Klong** Toeplitz/Hankel compression + residual emitter |
-| `horn/horn_cert.pl` | Curry–Howard / SLD Horn verifier that turns UUie ground facts into proof terms |
-| `.github/workflows/horn-sweep.yml` | Stateless GitHub Actions matrix runner for certificate sweeps |
-| `docs/horn-klong-uuie.md` | Full description of the self-contained verification stack |
-| `docs/constraints.md` | Hard constraints (conjugate symmetry, unit-band, stability) |
+| `kernels/weil_probe.bqn` | Starter discretized Toeplitz/Hankel probe |
+| `harness/harness.py` | Legacy PyTorch + Llama-3 + CBQN loop |
+| `prompts/muse_system_contract.xml` | Muse agent system contract |
+| `uuie/uuie_kernel.c` | **C11 directed-rounding oracle + certified Jacobi $n_+(R)$** (Gershgorin margin) |
+| `klong/weil_horn.kg` | Pure Klong compression; includes exact **Montgomery–Taylor window** `psi_mt` |
+| `horn/horn_cert.pl` | Curry–Howard / SLD Horn verifier |
+| `quantum/berry_keating_qsvt.py` | **QSVT projector + discrete Berry–Keating Hamiltonian** (pure PyTorch) |
+| `.github/workflows/horn-sweep.yml` | Stateless certificate sweep |
+| `docs/horn-klong-uuie.md` | Verification stack |
+| `docs/jacobi-eigensolver.md` | Jacobi specification |
+| `docs/quantum-bridge.md` | Mapping $R\mapsto\hat H_{\mathrm{BK}}\mapsto$ QSVT/QPE |
+| `docs/constraints.md` | Hard constraints |
 
 ## Preferred Verification Path (Horn–Klong–UUie)
 
-The modern, zero-dependency substrate:
+1. Klong builds the discretized window (parametric or Montgomery–Taylor) and the sinc-Toeplitz Gram matrix $R$.
+2. UUie returns a directed-rounding lower bound on $\rho$ **and** a certified exact $n_+(R)$ (Jacobi + Gershgorin safety margin).
+3. Successful runs emit an extended ground Horn fact.
+4. The Horn layer constructs typed proof terms for `simple_critical` / `simple_critical_exact`.
+5. GitHub Actions retains only SHA-256-sealed witnesses.
 
-1. Klong builds the discretized window and sinc-Toeplitz Gram matrix $R$.
-2. UUie evaluates a **directed-rounding** lower bound on $\rho = (\operatorname{tr} R)^2 / (N \cdot \|R\|_{\mathrm{HS}}^2)$ (trace under `FE_DOWNWARD`, HS-norm under `FE_UPWARD`).
-3. Successful runs emit a ground Horn fact `rank_trace_cert(...)`.
-4. The Prolog/Horn layer constructs a typed proof term for `simple_critical(Rho)`.
-5. GitHub Actions sweeps the $(N,a,b)$ parameter space and retains only SHA-256-sealed witnesses.
+## Quantum Bridge
 
-See `docs/horn-klong-uuie.md` for compile flags and local usage.
+The same matrix $R$ is the Gram operator of a finite-dimensional subspace of the Berry–Keating dilation generator. `quantum/berry_keating_qsvt.py` builds $R$, applies a QSVT-style polynomial projector $\Pi_+(R)$, and restricts the discrete Berry–Keating Hamiltonian onto that certified positive subspace. See `docs/quantum-bridge.md`.
 
 ## Constraints Enforced
 
 1. Conjugate symmetry: $R = R^\dagger$
 2. Unit-band support truncation on the Fourier grid
-3. Exact rational / floating-point stability (no NaN / Inf) + directed-rounding certification
+3. Directed-rounding + Gershgorin-certified positivity of eigenvalues
 
 ## License
 
