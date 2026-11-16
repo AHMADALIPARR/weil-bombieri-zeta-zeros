@@ -4,6 +4,8 @@ Discrete certificate tooling for the unconditional result on simple critical-lin
 
 Companion tables: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
+Higher-order logic formalization of the rank-trace bound: [formal/hol/](formal/hol/).
+
 ---
 
 ## 1. Research goal
@@ -57,10 +59,12 @@ Positive eigenvalues force simple critical-line zeros in the window. Hard constr
 | `formal/fp_rounding_witness.smt2` | QF_FP: RNE can undercut RTP | sat (Z3 5.4.1) |
 | `formal/qsvt_manifold.als` | Alloy SAT/UNSAT manifold | not run in this pass |
 | `formal/qsvt_counterclaims.als` | Alloy counterclaims | not run in this pass |
+| `formal/hol/WeilBombieriRankTrace.thy` | Isabelle/HOL proof of the rank-trace bound | theory ready |
 | `kernels/weil_probe.bqn` | CBQN trace-moment probe | not run in this pass (no CBQN installed) |
 | `prompts/muse_system_contract.xml` | Output contract for a synthesis model | text |
 | `.github/workflows/horn-sweep.yml` | Manual matrix job; builds the C kernel only | not run in this pass |
 | `docs/qsvt-polylog-soundness.md` | What the policy does not prove | docs |
+| `docs/hol.md` | HOL layer overview | docs |
 
 ---
 
@@ -153,6 +157,7 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 | Certified n_+ count under a Gershgorin residual margin (not machine-checked; open problem 6) | `uuie/uuie_kernel.c` |
 | Type/domain/finite policy guards | `horn/horn_cert.pl` |
 | RNE can undercut RTP on a quotient | `formal/fp_rounding_witness.smt2` (sat) |
+| Algebraic rank-trace inequality n₊ ≥ tr² / tr2 | `formal/hol/WeilBombieriRankTrace.thy` |
 | C=1 below Zolotarev and GSLW on reference params | docs (Alloy model not re-run 2026-11-15) |
 
 **Not proved**
@@ -164,6 +169,7 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 | Hardware Circulant-QFT gate counts | C_U is an analytic sketch |
 | Individual ordinates gamma_n from eigenmodes | Rank-trace only counts |
 | Anything past bandwidth one | Form-factor control stops at `abs(alpha) = 1` |
+| Full floating-point soundness of the directed-rounding bounds | open problem 6 |
 
 ---
 
@@ -180,6 +186,9 @@ horn/horn_cert.pl
   |-- verified_weil_quantum_witness/4   (rank_trace_cert + policy budget)
   |-- qsvt_polylog_cert/4               (policy budget only)
   |-- verified_weil_smt_witness/4       (horn/smt_manifold_cert.pl; needs SMT cell facts)
+
+formal/hol/WeilBombieriRankTrace.thy
+  |-- machine-checked proof that the numeric ratio is a lower bound on n₊
 ```
 
 ---
@@ -193,7 +202,7 @@ horn/horn_cert.pl
 | 3 | Proved constructive prefactor C >= 4/pi (ideally GSLW ~ 4) | analytic |
 | 4 | Map positive eigenmodes of R to ordinates gamma_n | analytic / spectral |
 | 5 | Calibrate c0(T) to explicit-formula diagonal | analytic + numerical |
-| 6 | Machine-checked proof of UUie directed-rounding inequalities | formal verification |
+| 6 | Machine-checked proof of UUie directed-rounding inequalities | formal verification (HOL algebraic part now present) |
 
 ---
 
@@ -214,6 +223,9 @@ z3 formal/fp_rounding_witness.smt2
 swipl -q -s horn/horn_cert.pl \
   -g "qsvt_polylog_cert(1000000,2.70,0.05,Q), writeln(Q), halt"
 swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
+
+# HOL rank-trace bound
+isabelle build -d formal/hol -v -c WeilBombieriRankTrace
 ```
 
 ### Results of these commands on 2026-11-15
@@ -238,6 +250,7 @@ The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho
 | A | Analytic theorems (Alpoge-Furman, BGSTB) | external; consumed, not re-proved |
 | B | Discrete numerical certificates (directed rho, Jacobi n_+) | **operational** |
 | C | Complexity envelopes and quantum sketches | instrumented; **holes named** |
+| D | Higher-order logic (rank-trace bound) | **Isabelle/HOL theory present** |
 
 A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyond bandwidth one, a closed Layer C (sound ceiling + proved prefactor + real block-encoding), and a bridge from eigenmodes to ordinates. This repo does not make that claim.
 
@@ -246,6 +259,7 @@ A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyon
 ## 10. Status
 
 - Classical discrete certificates (Klong + UUie + Horn): **run end to end on 2026-11-15**
+- Algebraic rank-trace inequality: **formalized in Isabelle/HOL**
 - Alloy models, BQN probe, GitHub workflow: **not run** in the 2026-11-15 pass
 - Quantum polylog projection of simple zeros: **not claimed**; gaps named and measured
 
