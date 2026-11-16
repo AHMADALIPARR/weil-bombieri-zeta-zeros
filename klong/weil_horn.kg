@@ -2,19 +2,30 @@
 :" Includes the exact delta(alpha) diagonal contact mass from Montgomery form factor "
 .l("math.kg")
 
+:" Usage: kg -q klong/weil_horn.kg [N]   (N defaults to 128)
+   Writes matrix_R.dat (N*N numbers, one per line) to the current directory.
+   KLONGPATH must include Klong's lib/ directory so math.kg can be found. "
+
 pi::3.141592653589793
 
 :" Stable sinc(x) "
-sinc::{:[1e-8>#x; 1-((x^2)%6)+(x^4)%120; (sin(x))%x]}
+sinc::{:[1e-8>#x; 1+((x^4)%120)-(x^2)%6; (sin(x))%x]}
+
+
+:" Notes on Klong semantics used below:
+   - identifiers cannot contain an underscore (it is the drop/floor operator);
+   - #x is the magnitude of a number but the length of a list, so
+     element-wise |u| is written #'u;
+   - sin/cos from math.kg are scalar-only, so they are applied with each (') "
 
 :" Equispaced grid u in [-1, 1] of length n "
 grid::{(-1)+(2*!x)%(x-1)}
 
 :" Compactly supported even cosine-tapered window psi(u; a, b) "
-psi::{[u a b]; u::x; a::y; b::z; (1-(u^2))*(1+(a*cos(pi*u))+(b*cos(2*pi*u)))}
+psi::{[u a b]; u::x; a::y; b::z; (1-(u^2))*(1+(a*cos'(pi*u))+(b*cos'(2*pi*u)))}
 
 :" Exact Montgomery-Taylor optimal window from arXiv:2608.13637 "
-psi_mt::{[u]; u::x; ((1-#u)*cos(pi*u))+(sin(pi*#u)%pi)}
+psimt::{[u]; u::x; ((1-#'u)*cos'(pi*u))+(sin'(pi*#'u))%pi}
 
 :" Toeplitz sinc-Gram compression (continuous part) "
 compress::{[u w diff S W];
@@ -28,30 +39,35 @@ compress::{[u w diff S W];
    The delta(0) term in F(alpha) = |alpha| + delta(alpha) contributes an
    explicit identity shift.  c0 is chosen so that the continuous + contact
    parts together recover the T log T main term of the explicit formula.
-   Empirically c0 ~ 1.0 already lifts rho_lb over 0.6725; tune if needed. "
+   Measured with this script (N=128, c0=1.0, Klong 20221212): rho_lb is
+   about 0.171, below 0.6725; uuie_kernel accepts the matrix only through
+   the Jacobi count n+/N = 1, which holds because the sinc Gram part is
+   positive semidefinite and the contact adds the identity. "
 c0::1.0
-add_contact::{[R n]; n::#x; R::x; R+c0*(=:!n)}
+ident::{(!x)=:\!x}
+addcontact::{[R n]; n::#x; R::x; R+c0*ident(n)}
 
 :" Klong-side trace, Hilbert-Schmidt norm^2, and rank-trace residual "
-trace::{+/{(x@y)@y}[x;]'!#x}
+trace::{+/(,/x)@(1+#x)*!#x}
 hs2::{+/+/x*x}
 ratio::{[tr h n]; n::#x; tr::trace(x); h::hs2(x); (tr^2)%(n*h)}
 residual::{[tr h]; tr::trace(x); h::hs2(x); (tr^2)%h}
 
 :" Emit flat matrix to file for UUie directed-rounding certification "
-emit::{[f flat];
+emit::{[f flat old];
   f::.oc(y);
   flat::,/x;
-  .to(f);
-  {.d(x);.p(" ")}'flat;
-  .tc(f)}
+  old::.tc(f);
+  {.d(x);.p("")}'flat;
+  .tc(old);
+  .cc(f)}
 
 :" Entrypoint — Montgomery-Taylor window + delta(alpha) contact mass "
-N::128
+N:::[0<#.a;.rs(*.a);128]
 U::grid(N)
-W::psi_mt(U)
+W::psimt(U)
 R0::compress(U; W)
-R::add_contact(R0)
+R::addcontact(R0)
 
 .d("klong_ratio (with contact): "); .d(ratio(R)); .p("")
 .d("klong_nplus_bound: "); .d(residual(R)); .p("")

@@ -18,10 +18,10 @@ Two unverified gaps sit inside `qsvt_build_report/4`:
 Given valid inputs $(\alpha_C, g, \varepsilon)$, the predicate evaluates
 
 $$
-\widehat{Q} = \bigl\lceil \operatorname{fl}\bigl(\operatorname{fl}(\alpha_C / g) \cdot \operatorname{fl}(-\ln\varepsilon)\bigr) \bigr\rceil
+\widehat{Q} = \bigl\lceil \mathrm{fl}\bigl(\mathrm{fl}(\alpha_C / g) \cdot \mathrm{fl}(-\ln\varepsilon)\bigr) \bigr\rceil
 $$
 
-where $\operatorname{fl}(\cdot)$ denotes IEEE-754 binary64 round-to-nearest-even (`FE_TONEAREST`), **not** directed upward rounding or exact rational interval arithmetic.
+where $\mathrm{fl}(\cdot)$ denotes IEEE-754 binary64 round-to-nearest-even (`FE_TONEAREST`), **not** directed upward rounding or exact rational interval arithmetic.
 
 For $\widehat{Q}$ to be a sound upper bound on
 
@@ -37,7 +37,7 @@ Choose exact binary64 values inside the policy domain:
 
 - $\alpha_C = 0.5$, $g = 0.25$ (both bit-for-bit exact)
 - Exact real quotient $\alpha_C/g = 2 + \frac{2^{-52}}{1+2^{-52}} > 2$
-- On $[2,4)$, $\operatorname{ulp}(2)=2^{-51}$. The midpoint is $2+2^{-52}$. Round-to-nearest therefore rounds **downward** to $2.0$, discarding $\approx 2.22\times 10^{-16}$.
+- On $[2,4)$, $\mathrm{ulp}(2)=2^{-51}$. The midpoint is $2+2^{-52}$. Round-to-nearest therefore rounds **downward** to $2.0$, discarding $\approx 2.22\times 10^{-16}$.
 
 Because $\lceil x\rceil$ is discontinuous at every integer, any product whose exact value lies in $(M, M+O(u\cdot M))$ while the rounded product satisfies $\widehat{x}\le M$ yields
 
@@ -71,7 +71,7 @@ $$
 satisfying the mandatory QSVT conditions (Gilyén et al., STOC 2019, Thm 17 & Lem 25):
 
 1. $|P(x)|\le 1$ for all $x\in[-1,1]$
-2. $|P(x)-\operatorname{sgn}(x)|\le\varepsilon$ for all $|x|\in[\delta,1]$
+2. $|P(x)-\mathrm{sgn}(x)|\le\varepsilon$ for all $|x|\in[\delta,1]$
 
 ### Why $d_{\text{Prolog}}$ violates existence bounds
 

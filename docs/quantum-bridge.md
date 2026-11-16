@@ -52,5 +52,6 @@ Classically, full diagonalisation of an $N\times N$ dense matrix is $O(N^3)$. On
 |------|------|
 | `uuie/uuie_kernel.c` | Directed-rounding analytic bound **and** certified Jacobi $n_+(R)$ with Gershgorin safety margin |
 | `klong/weil_horn.kg` | Contains both the parametric window family **and** the exact Montgomery–Taylor extremizer `psimt` |
+| `quantum/berry_keating_qsvt.py` | Removed on this branch (owner request: no Python). It held a PyTorch QSVT projector and a discrete Berry–Keating generator; no replacement exists. |
 
 With the projector code removed, only the classical rank-trace path (Klong + UUie + Horn) is executable here.

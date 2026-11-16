@@ -1,8 +1,8 @@
 # Weil-Bombieri Zeta Zeros
 
-![Weil–Bombieri Zeta Zeros](docs/images/01-weil-bombieri-cover.png)
-
 Discrete certificate tooling for the unconditional result on simple critical-line zeros of the Riemann zeta function via finite Hermitian compressions of the Weil explicit formula. The analytic theorem is from the cited paper; this code does not re-prove it.
+
+This repository implements the discrete side of the Alpoge-Furman argument ([arXiv:2608.13637](https://arxiv.org/abs/2608.13637)): directed-rounding certificates, certified Jacobi rank counts, a Klong matrix generator, a Prolog policy layer, and an Alloy/SMT audit of what still fails for polylog QSVT bounds. The Python modules were removed on 2026-11-15 at the owner's request; see [Removed components](#removed-components).
 
 Companion tables: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
@@ -73,18 +73,32 @@ Positive eigenvalues force simple critical-line zeros in the window. Hard constr
 | `formal/fp_rounding_witness.smt2` | QF_FP: RNE can undercut RTP | sat (Z3 5.4.1) |
 | `formal/qsvt_manifold.als` | Alloy SAT/UNSAT manifold | not run in this pass |
 | `formal/qsvt_counterclaims.als` | Alloy counterclaims | not run in this pass |
-| `formal/hol/WeilBombieriRankTrace.thy` | Isabelle/HOL proof of the rank-trace bound | theory ready |
-| `formal/hol/IsabelleAutomation.thy` | Sledgehammer / smt / simp automation examples | theory ready |
-| `liquid-haskell/` | Thousands of lines of Liquid Haskell refinement types (Matrix, Certificate, DirectedRounding, QSVT) | modules present |
 | `kernels/weil_probe.bqn` | CBQN trace-moment probe | not run in this pass (no CBQN installed) |
 | `prompts/muse_system_contract.xml` | Output contract for a synthesis model | text |
 | `.github/workflows/horn-sweep.yml` | Manual matrix job; builds the C kernel only | not run in this pass |
+| `docs/BENCHMARKS.md` | Measured tables (from the removed Python modules) | docs |
 | `docs/qsvt-polylog-soundness.md` | What the policy does not prove | docs |
 | `docs/hol.md` | HOL + LH overview | docs |
+
+### Removed components
+
+These Python files were removed on 2026-11-15 at the owner's request:
+
+| Removed file | What it did |
+|------|------|
+| `harness/gate.py`, `harness/harness.py` | Extracted a `<klong_kernel>` block from model output and ran kg then `uuie_kernel` |
+| `quantum/block_encoding_audit.py` | Circulant-QFT / LCU / QSVT degree tables (sections 3.1 to 3.5) |
+| `quantum/sparse_lcu.py` | Bandwidth and threshold LCU truncation (section 4) |
+| `quantum/berry_keating_qsvt.py` | QSVT projector and discrete Berry–Keating generator |
+| `formal/recursive_manifold_prune.py` | Generated `smt_certified_cell/6` facts for `horn/smt_manifold_cert.pl` |
+
+Their numbers in sections 3 and 4 below remain as recorded, but cannot be regenerated from this repository any more.
 
 ---
 
 ## 3. Measured benchmarks
+
+All numbers in this section come from the removed `quantum/block_encoding_audit.py` (binary64, November 2026). On 2026-11-15, before removal, a re-run matched tables 3.1 and 3.2 for N = 64 to 1024. Tables 3.3 to 3.5 are derived from the same runs; the Zolotarev and GSLW degrees in 3.4 were not re-verified.
 
 ### 3.1 No contact mass
 
@@ -143,6 +157,8 @@ Non-negative Fourier coefficients imply peak circulant eigenvalue equals full LC
 
 ## 4. Sparse LCU truncation
 
+Produced by the removed `quantum/sparse_lcu.py`. MT coefficients decay empirically as `abs(t_d) ~ d^(-2.16)` (measured decay exponent 2.155 at N = 256). Two methods:
+
 | Method | Keeps |
 |--------|-------|
 | Bandwidth | lags with `abs(d) <= K` |
@@ -173,8 +189,6 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 | Certified n_+ count under a Gershgorin residual margin (not machine-checked; open problem 6) | `uuie/uuie_kernel.c` |
 | Type/domain/finite policy guards | `horn/horn_cert.pl` |
 | RNE can undercut RTP on a quotient | `formal/fp_rounding_witness.smt2` (sat) |
-| Algebraic rank-trace inequality n₊ ≥ tr² / tr2 | `formal/hol/WeilBombieriRankTrace.thy` |
-| Refinement-typed matrix, certificate, directed-rounding and QSVT invariants | `liquid-haskell/` |
 | C=1 below Zolotarev and GSLW on reference params | docs (Alloy model not re-run 2026-11-15) |
 
 **Not proved**
@@ -186,7 +200,6 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 | Hardware Circulant-QFT gate counts | C_U is an analytic sketch |
 | Individual ordinates gamma_n from eigenmodes | Rank-trace only counts |
 | Anything past bandwidth one | Form-factor control stops at `abs(alpha) = 1` |
-| Full floating-point soundness of the directed-rounding bounds | open problem 6 |
 
 ---
 
@@ -196,6 +209,7 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 
 ```text
 synthesis model / Muse
+  |  must emit <klong_kernel> ... </klong_kernel>   (extraction step removed with harness/gate.py)
   v
 kg -q <kernel>.kg N        -> matrix_R.dat
 uuie_kernel N target matrix_R.dat
@@ -205,14 +219,6 @@ horn/horn_cert.pl
   |-- verified_weil_quantum_witness/4   (rank_trace_cert + policy budget)
   |-- qsvt_polylog_cert/4               (policy budget only)
   |-- verified_weil_smt_witness/4       (horn/smt_manifold_cert.pl; needs SMT cell facts)
-
-formal/hol/WeilBombieriRankTrace.thy
-  |-- machine-checked proof that the numeric ratio is a lower bound on n₊
-formal/hol/IsabelleAutomation.thy
-  |-- sledgehammer / smt examples
-
-liquid-haskell/
-  |-- thousands of lines of refinement types encoding the same invariants
 ```
 
 ![Rank-trace certificate](docs/images/06-rank-trace-certificate.png)
@@ -249,15 +255,20 @@ z3 formal/fp_rounding_witness.smt2
 swipl -q -s horn/horn_cert.pl \
   -g "qsvt_polylog_cert(1000000,2.70,0.05,Q), writeln(Q), halt"
 swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
-
-# HOL rank-trace bound + automation
-isabelle build -d formal/hol -v -c WeilBombieriRankTrace
-isabelle build -d formal/hol -v -c IsabelleAutomation
-
-# Liquid Haskell refinements
-liquid liquid-haskell/Matrix.hs
-liquid liquid-haskell/Certificate.hs
 ```
+
+### Results of these commands on 2026-11-15
+
+| Command | Result |
+|---------|--------|
+| `kg -q klong/weil_horn.kg 128` (Klong 20221212) | exit 0, 16384 values written, about 2.5 min |
+| `uuie_kernel 128 0.6725 matrix_R.dat` | `valid`, exit 0: rho_lb = 0.17079, n_+ = 128/128 |
+| `kg -q klong/weil_horn.kg 64` + `uuie_kernel 64 ...` | `valid`, exit 0: rho_lb = 0.29648, n_+ = 64/64 |
+| `z3 formal/fp_rounding_witness.smt2` (Z3 5.4.1) | `sat` |
+| `qsvt_polylog_cert(1000000,2.70,0.05,Q)` | `Q = 747` |
+| plunit suite (SWI-Prolog 9.2.9) | 20/20 pass |
+
+The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho_lb is well below 0.6725. n_+/N = 1 holds because the sinc Gram part is positive semidefinite and the contact term adds c0 = 1 times the identity, so this is not evidence about zeta zeros by itself.
 
 ### Results of these commands on 2026-11-15
 
@@ -291,9 +302,8 @@ A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyon
 ## 10. Status
 
 - Classical discrete certificates (Klong + UUie + Horn): **run end to end on 2026-11-15**
-- Algebraic rank-trace inequality: **formalized in Isabelle/HOL**
-- Isabelle automation layer: **present**
-- Liquid Haskell refinement types: **thousands of lines added**
+- Automatic gate against non-executable synthesis: **removed** with `harness/gate.py`; the kg and uuie steps still run by hand
+- Sparse LCU truncation and block-encoding audit: **removed** (Python); recorded tables kept
 - Alloy models, BQN probe, GitHub workflow: **not run** in the 2026-11-15 pass
 - Quantum polylog projection of simple zeros: **not claimed**; gaps named and measured
 

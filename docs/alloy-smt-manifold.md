@@ -5,6 +5,7 @@ Combining Alloy (bounded relational SAT/UNSAT) with SMT (QF_FP for exact IEEE-75
 | Layer | Tool | Role |
 |-------|------|------|
 | Discrete structure | Alloy (`formal/qsvt_manifold.als`) | SAT/UNSAT on parent-child cell containment, recursive manifold invariants, rounding-slip and unsound-prefactor witnesses |
+| Continuous pruning | SMT QF_NRA (generator `formal/recursive_manifold_prune.py`, removed on this branch) | Incremental push/pop unsat checks over $(\alpha_C, g)$ boxes; emit Horn-ready certified cells |
 | Bit-exact FP | SMT QF_FP (`formal/fp_rounding_witness.smt2`) | Prove RNE can undercut the exact quotient while RTP stays above |
 
 ## Alloy commands (expected results; not re-run in the 2026-11-15 pass)
@@ -27,6 +28,8 @@ z3 formal/fp_rounding_witness.smt2
 The file does not fix $\alpha_C$ and $g$; it asks the solver for any normal binary64 pair in the policy range ($0.05 \le g \le \alpha_C \le 3$) whose RNE quotient is strictly below its RTP quotient. With Z3 5.4.1 (run 2026-11-15) the result was `sat`, with `q_rne` and `q_rtp` differing in the last significand bit (`...c463` vs `...c464`). The model values depend on the solver version.
 
 ## Recursive manifold pruner
+
+The generator `formal/recursive_manifold_prune.py` was removed from this branch (owner request: no Python). `horn/smt_manifold_cert.pl` still consumes `smt_certified_cell/6` facts, but no remaining file produces them. The description below is of the removed tool.
 
 - **Prune** — whole box unsat for `valid_qsvt` → discard.
 - **Certify** — negated invariant unsat → emit `smt_certified_cell/6`.

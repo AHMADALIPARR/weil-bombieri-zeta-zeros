@@ -1,5 +1,7 @@
 # Block-Encoding Complexity Audit of the Weil–Bombieri Operator
 
+This document records the exact gate-complexity analysis of block-encoding the compressed Weil matrix $R$ that appears in arXiv:2608.13637, together with concrete numbers that were produced by `quantum/block_encoding_audit.py` (since removed; see section 4).
+
 ## 1. Circulant-QFT versus Naive Shift-LCU
 
 The matrix produced by evaluating the Weil form on an equispaced frequency grid is a pure Hermitian Toeplitz matrix $T$ whose symbol is the squared Montgomery–Taylor window times the pair-correlation kernel.
@@ -43,5 +45,7 @@ $$
 In addition, classical readout of $N$ distinct ordinates via QPE still costs $O(N/\varepsilon_{\mathrm{QPE}})$ measurements.
 
 ## 4. Empirical Numbers
+
+The concrete table of $\rho$, $n_+/N$, $\alpha_C$, $\alpha_{\mathrm{LCU}}$, truncation error, $\delta_{\min}$, gate counts and QSVT degrees for $N=64\dots1024$ is in [BENCHMARKS.md](BENCHMARKS.md). It was produced by `quantum/block_encoding_audit.py`, which has been removed from this branch (owner request: no Python), so it cannot be regenerated from the repository as it stands.
 
 The measured numbers are consistent with Circulant-QFT keeping $\alpha_C=O(1)$ for these $N$ while exposing the spectral-gap bottleneck that prevents an unconditional polylogarithmic extraction of every simple critical-line zero.

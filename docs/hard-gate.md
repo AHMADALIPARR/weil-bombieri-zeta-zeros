@@ -33,6 +33,8 @@ Any prose-only answer, any kernel that fails to emit a matrix, any numerical ins
 
 ## Status on this branch
 
+The Python implementation of this gate (`harness/gate.py`, `harness/harness.py`) was removed at the owner's request. The pipeline above is still the contract, and its two executable stages can be run by hand:
+
 ```bash
 kg -q candidate_weil.kg 128          # must exit 0 and write matrix_R.dat
 ./uuie/uuie_kernel 128 0.6725 matrix_R.dat   # exit 0 = accepted, 1 = rejected, 2 = bad input

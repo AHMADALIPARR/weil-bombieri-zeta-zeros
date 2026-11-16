@@ -1,5 +1,9 @@
 # Measured benchmarks
 
+Sections 1 to 7 were produced by `quantum/block_encoding_audit.py` and `quantum/sparse_lcu.py` (IEEE-754 binary64, November 2026). Both modules have been removed from this branch at the owner's request (no Python), so these tables cannot be regenerated from the repository as it stands.
+
+Re-check on 2026-11-15, run before removal (PyTorch 2.15.0 CPU): section 1 rows N=64..1024 (columns rho, n+/N, delta_min, alpha_C, alpha_LCU, C_U, q(0.05)), section 2 rows N=64..1024 (columns rho, n+/N, delta_min, alpha_C, C_U, q(0.05), q(delta_min)), section 3 (all rows and the threshold example), and the contact column of section 4 matched the printed values. Not re-verified: the N=32 rows, the q_Zolotarev and q_GSLW columns, the no-contact column of section 4, and sections 5 and 7.
+
 Companion to the main [README](../README.md).
 
 ---
@@ -29,6 +33,8 @@ Companion to the main [README](../README.md).
 | 1024 | 0.7708 | 1.0000 | 1.00 | 3.6996 | 2676 | 1023 | 52 | 1302 | 4089 |
 
 ---
+
+## 3. Sparse LCU truncation (from the removed `quantum/sparse_lcu.py`)
 
 Empirical coefficient decay $|t_d|\sim d^{-2.16}$. Full $\alpha_{\mathrm{LCU}}\approx 2.699$ at $N=256$.
 
@@ -118,3 +124,4 @@ z3 formal/fp_rounding_witness.smt2
 swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
 ```
 
+The Python commands that produced sections 1 to 7 were removed with the modules.
