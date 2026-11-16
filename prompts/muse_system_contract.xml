@@ -40,7 +40,8 @@
   </output_schema>
 
   <hard_gate>
-    Every response is passed through harness/gate.py:
+    Every response is passed through the hard gate (docs/hard-gate.md;
+    its Python implementation harness/gate.py was removed):
       - missing <klong_kernel> → REJECT
       - Klong non-zero exit or no matrix_R.dat → REJECT
       - UUie certificate fails (rho and jacobi both ≤ target) → REJECT
