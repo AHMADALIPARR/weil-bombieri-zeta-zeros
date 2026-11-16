@@ -1,0 +1,20 @@
+cabal-version:      3.0
+name:               mp-check
+version:            0.1.0.0
+synopsis:           Hand-rolled test harness: SplitMix64, generators, properties, ID-tagged tests.
+license:            AGPL-3.0-or-later
+build-type:         Simple
+
+library
+  exposed-modules:  MP.Check
+                    MP.Check.Random
+  hs-source-dirs:   src
+  build-depends:    base >=4.20 && <4.21
+  default-language: GHC2021
+
+test-suite mp-check-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   test
+  build-depends:    base >=4.20 && <4.21, mp-check
+  default-language: GHC2021
