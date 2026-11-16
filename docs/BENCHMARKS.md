@@ -1,6 +1,8 @@
 # Measured benchmarks
 
-All tables produced by `quantum/block_encoding_audit.py`, `quantum/sparse_lcu.py`, and the same Toeplitz generator used in Klong, IEEE-754 binary64, November 2026.
+Sections 1 to 7 were produced by `quantum/block_encoding_audit.py` and `quantum/sparse_lcu.py` (IEEE-754 binary64, November 2026). Both modules have been removed from this branch at the owner's request (no Python), so these tables cannot be regenerated from the repository as it stands.
+
+Re-check on 2026-11-15, run before removal (PyTorch 2.15.0 CPU): section 1 rows N=64..1024 (columns rho, n+/N, delta_min, alpha_C, alpha_LCU, C_U, q(0.05)), section 2 rows N=64..1024 (columns rho, n+/N, delta_min, alpha_C, C_U, q(0.05), q(delta_min)), section 3 (all rows and the threshold example), and the contact column of section 4 matched the printed values. Not re-verified: the N=32 rows, the q_Zolotarev and q_GSLW columns, the no-contact column of section 4, and sections 5 and 7.
 
 Companion to the main [README](../README.md).
 
@@ -32,13 +34,13 @@ Companion to the main [README](../README.md).
 
 ---
 
-## 3. Sparse LCU truncation (`quantum/sparse_lcu.py`)
+## 3. Sparse LCU truncation (from the removed `quantum/sparse_lcu.py`)
 
 Empirical coefficient decay $|t_d|\sim d^{-2.16}$. Full $\alpha_{\mathrm{LCU}}\approx 2.699$ at $N=256$.
 
 ### Bandwidth sweep $N=256$ (no contact)
 
-| $K$ | $\|T-T_K\|_2$ | $\|T-T_K\|_F$ | nnz frac | $\alpha_K$ | terms |
+| $K$ | $\Vert T-T_K\Vert_2$ | $\Vert T-T_K\Vert_F$ | nnz frac | $\alpha_K$ | terms |
 |------:|----------------:|----------------:|---------:|-----------:|------:|
 | 1 | $1.23$ | $8.16$ | 0.012 | 1.467 | 2 |
 | 2 | $0.597$ | $4.02$ | 0.019 | 2.097 | 3 |
@@ -54,12 +56,6 @@ Empirical coefficient decay $|t_d|\sim d^{-2.16}$. Full $\alpha_{\mathrm{LCU}}\a
 ### Threshold example
 
 `tau=1e-3` at $N=256$: $\mathrm{err}_2=2.18\times 10^{-2}$, 15 one-sided terms, $\alpha_K=2.673$.
-
-```bash
-python quantum/sparse_lcu.py --N 256 --sweep
-python quantum/sparse_lcu.py --N 256 --K 16
-python quantum/sparse_lcu.py --N 256 --tau 1e-3
-```
 
 Circulant-QFT remains preferred for zero truncation error at $O(\log^2 N)$ gate cost.
 
@@ -111,7 +107,7 @@ Circulant-QFT remains preferred for zero truncation error at $O(\log^2 N)$ gate 
 
 ---
 
-## 8. Policy predicate (SWI-Prolog 9.0.4)
+## 8. Policy predicate (SWI-Prolog 9.0.4; re-run 2026-11-15 on 9.2.9 with N = 1000000, same results)
 
 | Query | Result |
 |-------|--------|
@@ -124,7 +120,8 @@ Circulant-QFT remains preferred for zero truncation error at $O(\log^2 N)$ gate 
 ## Reproduce
 
 ```bash
-python3 quantum/block_encoding_audit.py
-python3 quantum/sparse_lcu.py --N 256 --sweep
 z3 formal/fp_rounding_witness.smt2
+swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
 ```
+
+The Python commands that produced sections 1 to 7 were removed with the modules.

@@ -1,10 +1,8 @@
 # Weil-Bombieri Zeta Zeros
 
-Unconditional simple critical-line zeros of the Riemann zeta function via finite Hermitian compressions of the Weil explicit formula.
+Discrete certificate tooling for the unconditional result on simple critical-line zeros of the Riemann zeta function via finite Hermitian compressions of the Weil explicit formula. The analytic theorem is from the cited paper; this code does not re-prove it.
 
-This repository implements the discrete side of the Alpoge-Furman argument ([arXiv:2608.13637](https://arxiv.org/abs/2608.13637)): directed-rounding certificates, exact Jacobi rank counts, a hard LLM synthesis gate, sparse LCU truncation, and an Alloy/SMT audit of what still fails for polylog QSVT bounds.
-
-It is a certificate engine. It is not a zero factory. It does not claim a quantum algorithm that extracts individual ordinates in polylog time.
+This repository implements the discrete side of the Alpoge-Furman argument ([arXiv:2608.13637](https://arxiv.org/abs/2608.13637)): directed-rounding certificates, certified Jacobi rank counts, a Klong matrix generator, a Prolog policy layer, and an Alloy/SMT audit of what still fails for polylog QSVT bounds. The Python modules were removed on 2026-11-15 at the owner's request; see [Removed components](#removed-components).
 
 Companion tables: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
@@ -25,6 +23,7 @@ liminf N_s(T)/N(T)  >=  rho_0
 | Levinson | 1/3 on the line | mollifiers | 1974 |
 | Conrey | 2/5 = 0.4000 on the line | mollifiers | 1989 |
 | Bui-Conrey-Young et al. | about 0.414 on the line | refined mollifiers | 2010s |
+| Pratt-Robles-Zaharescu-Zeindler | 5/12 on the line | mollifiers | 2020 |
 | **Alpoge-Furman** | **2/3 simple + critical** | Weil form + rank-trace | 2026 |
 | **Alpoge-Furman (MT window)** | **0.6725 simple + critical** | Montgomery-Taylor test function | 2026 |
 | Alpoge-Furman | 5/6 distinct zeros | same lane | 2026 |
@@ -50,25 +49,41 @@ Positive eigenvalues force simple critical-line zeros in the window. Hard constr
 
 ## 2. Repository map
 
-| Path | Role | Status |
-|------|------|--------|
-| `klong/weil_horn.kg` | MT window, Toeplitz Gram, delta(alpha) contact | operational |
-| `uuie/uuie_kernel.c` | Directed-rounding rho + Jacobi n_+ | operational |
-| `horn/horn_cert.pl` | Hardened policy + Horn rules | operational |
-| `harness/gate.py` | LLM to kernel to kg to UUie; prose rejected | operational |
-| `quantum/block_encoding_audit.py` | Circulant-QFT / LCU / QSVT degrees | operational |
-| `quantum/sparse_lcu.py` | Bandwidth + threshold LCU truncation | operational |
-| `formal/fp_rounding_witness.smt2` | QF_FP: RNE can undercut RTP | sat (Z3 4.8) |
-| `formal/recursive_manifold_prune.py` | QF_NRA manifold pruner | operational |
-| `formal/qsvt_manifold.als` | Alloy SAT/UNSAT manifold | model |
-| `docs/BENCHMARKS.md` | Full measured tables | docs |
+| Path | Role | Status (checked 2026-11-15) |
+|------|------|------|
+| `klong/weil_horn.kg` | MT window, sinc Gram matrix, delta(alpha) contact, writes `matrix_R.dat` | runs (Klong 20221212) |
+| `uuie/uuie_kernel.c` | Directed-rounding rho lower bound + Jacobi n_+ count | compiles and runs (gcc, C11) |
+| `horn/horn_cert.pl` | Hardened policy predicate + combined witness | plunit 20/20 pass (SWI-Prolog 9.2.9) |
+| `horn/test_qsvt_polylog.pl` | plunit suite for `horn_cert.pl` | see above |
+| `horn/smt_manifold_cert.pl` | Consumes `smt_certified_cell/6` facts | loads; no generator left (see below) |
+| `formal/fp_rounding_witness.smt2` | QF_FP: RNE can undercut RTP | sat (Z3 5.4.1) |
+| `formal/qsvt_manifold.als` | Alloy SAT/UNSAT manifold | not run in this pass |
+| `formal/qsvt_counterclaims.als` | Alloy counterclaims | not run in this pass |
+| `kernels/weil_probe.bqn` | CBQN trace-moment probe | not run in this pass (no CBQN installed) |
+| `prompts/muse_system_contract.xml` | Output contract for a synthesis model | text |
+| `.github/workflows/horn-sweep.yml` | Manual matrix job; builds the C kernel only | not run in this pass |
+| `docs/BENCHMARKS.md` | Measured tables (from the removed Python modules) | docs |
 | `docs/qsvt-polylog-soundness.md` | What the policy does not prove | docs |
+
+### Removed components
+
+These Python files were removed on 2026-11-15 at the owner's request:
+
+| Removed file | What it did |
+|------|------|
+| `harness/gate.py`, `harness/harness.py` | Extracted a `<klong_kernel>` block from model output and ran kg then `uuie_kernel` |
+| `quantum/block_encoding_audit.py` | Circulant-QFT / LCU / QSVT degree tables (sections 3.1 to 3.5) |
+| `quantum/sparse_lcu.py` | Bandwidth and threshold LCU truncation (section 4) |
+| `quantum/berry_keating_qsvt.py` | QSVT projector and discrete Berry–Keating generator |
+| `formal/recursive_manifold_prune.py` | Generated `smt_certified_cell/6` facts for `horn/smt_manifold_cert.pl` |
+
+Their numbers in sections 3 and 4 below remain as recorded, but cannot be regenerated from this repository any more.
 
 ---
 
 ## 3. Measured benchmarks
 
-All numbers from `quantum/block_encoding_audit.py` and `quantum/sparse_lcu.py`, binary64, November 2026.
+All numbers in this section come from the removed `quantum/block_encoding_audit.py` (binary64, November 2026). On 2026-11-15, before removal, a re-run matched tables 3.1 and 3.2 for N = 64 to 1024. Tables 3.3 to 3.5 are derived from the same runs; the Zolotarev and GSLW degrees in 3.4 were not re-verified.
 
 ### 3.1 No contact mass
 
@@ -127,57 +142,25 @@ Non-negative Fourier coefficients imply peak circulant eigenvalue equals full LC
 
 ## 4. Sparse LCU truncation
 
-Module: [quantum/sparse_lcu.py](quantum/sparse_lcu.py).
+Produced by the removed `quantum/sparse_lcu.py`. MT coefficients decay empirically as `abs(t_d) ~ d^(-2.16)` (measured decay exponent 2.155 at N = 256). Two methods:
 
-MT coefficients decay empirically as `|t_d| ~ d^(-2.16)`. Two methods:
-
-| Method | Function | Keeps |
-|--------|----------|-------|
-| Bandwidth | `truncate_bandwidth(T, t_col, K)` | lags `|d| <= K` |
-| Threshold | `truncate_threshold(T, t_col, tau)` | `|t_d| >= tau` (always d=0) |
+| Method | Keeps |
+|--------|-------|
+| Bandwidth | lags with `abs(d) <= K` |
+| Threshold | lags with `abs(t_d) >= tau` (always d = 0) |
 
 ### K-sweep at N = 256 (no contact)
 
-| K | ||T-T_K||_2 | nnz | alpha_K | terms |
+| K | err_2 = norm(T - T_K, 2) | nnz fraction | alpha_K | terms |
 |------:|-------------:|------:|----------:|------:|
 | 8 | 4.43e-02 | 0.065 | 2.651 | 9 |
 | **16** | **1.85e-02** | **0.125** | **2.677** | **17** |
 | 32 | 7.30e-03 | 0.238 | 2.689 | 33 |
 | 64 | 2.33e-03 | 0.440 | 2.694 | 65 |
 
+These rows were re-checked against a run of the module on 2026-11-15, before it was removed.
+
 Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cost. Sparse LCU is the baseline when fewer explicit diagonals are needed.
-
-### Code sample
-
-```python
-from quantum.sparse_lcu import (
-    toeplitz_first_column,
-    build_toeplitz,
-    truncate_bandwidth,
-    truncate_threshold,
-    coefficient_decay,
-)
-
-N, K = 256, 16
-t = toeplitz_first_column(N, c0=0.0)
-T = build_toeplitz(t)
-
-Tk, rep = truncate_bandwidth(T, t, K)
-print("K=%d  err_2=%.4e  nnz=%.4f  alpha_K=%.6f  terms=%d" % (
-    K, rep.err_2, rep.nnz_frac, rep.alpha_sparse, rep.n_terms))
-print("decay b ~ %.3f" % coefficient_decay(t))
-
-Tk2, rep2 = truncate_threshold(T, t, tau=1e-3)
-print("tau=1e-3  err_2=%.4e  terms=%d" % (rep2.err_2, rep2.n_terms))
-```
-
-CLI:
-
-```bash
-python quantum/sparse_lcu.py --N 256 --sweep
-python quantum/sparse_lcu.py --N 256 --K 16
-python quantum/sparse_lcu.py --N 256 --tau 1e-3
-```
 
 ---
 
@@ -188,11 +171,10 @@ python quantum/sparse_lcu.py --N 256 --tau 1e-3
 | Claim | Where |
 |-------|-------|
 | Directed-rounding lower bound on rho | `uuie/uuie_kernel.c` |
-| Exact n_+ under Gershgorin residual | `uuie/uuie_kernel.c` |
-| Non-executable LLM output rejected | `harness/gate.py` |
+| Certified n_+ count under a Gershgorin residual margin (not machine-checked; open problem 6) | `uuie/uuie_kernel.c` |
 | Type/domain/finite policy guards | `horn/horn_cert.pl` |
 | RNE can undercut RTP on a quotient | `formal/fp_rounding_witness.smt2` (sat) |
-| C=1 below Zolotarev and GSLW on reference params | docs + Alloy |
+| C=1 below Zolotarev and GSLW on reference params | docs (Alloy model not re-run 2026-11-15) |
 
 **Not proved**
 
@@ -202,28 +184,24 @@ python quantum/sparse_lcu.py --N 256 --tau 1e-3
 | Degree Q-hat admits a QSVT phase sequence | Prefactor C=1 is below known bounds |
 | Hardware Circulant-QFT gate counts | C_U is an analytic sketch |
 | Individual ordinates gamma_n from eigenmodes | Rank-trace only counts |
-| Anything past bandwidth one | Form-factor control stops at `|alpha|=1` |
+| Anything past bandwidth one | Form-factor control stops at `abs(alpha) = 1` |
 
 ---
 
 ## 6. Architecture
 
 ```text
-LLM / Muse
-  |  must emit <klong_kernel> ... </klong_kernel>
+synthesis model / Muse
+  |  must emit <klong_kernel> ... </klong_kernel>   (extraction step removed with harness/gate.py)
   v
-harness/gate.py
-  |  kg -> matrix_R.dat
-  |  uuie_kernel N target matrix_R.dat
+kg -q <kernel>.kg N        -> matrix_R.dat
+uuie_kernel N target matrix_R.dat
+  |  prints rank_trace_cert(N, TrDown, Hs2Up, RhoLb, Nplus, JacobiFrac, valid|reject).
   v
-rank_trace_cert(...)
-  |-- Horn classical (simple_critical)
-  |-- qsvt_polylog_cert   (policy budget only)
-  |-- qsvt_smt_manifold_cert  (optional SMT cells)
-
-Parallel (not on the hard gate):
-  block_encoding_audit.py   Circulant-QFT / full LCU costs
-  sparse_lcu.py             bandwidth / threshold truncation
+horn/horn_cert.pl
+  |-- verified_weil_quantum_witness/4   (rank_trace_cert + policy budget)
+  |-- qsvt_polylog_cert/4               (policy budget only)
+  |-- verified_weil_smt_witness/4       (horn/smt_manifold_cert.pl; needs SMT cell facts)
 ```
 
 ---
@@ -232,7 +210,7 @@ Parallel (not on the hard gate):
 
 | # | Problem | Type |
 |---|---------|------|
-| 1 | Form factor for `|alpha| > 1` | analytic, external |
+| 1 | Form factor for `abs(alpha) > 1` | analytic, external |
 | 2 | Sound ceiling under floating point | numerical / formal |
 | 3 | Proved constructive prefactor C >= 4/pi (ideally GSLW ~ 4) | analytic |
 | 4 | Map positive eigenmodes of R to ordinates gamma_n | analytic / spectral |
@@ -247,29 +225,31 @@ Parallel (not on the hard gate):
 # Classical certificate path
 cc -std=c11 -O2 -frounding-math -ffp-contract=off \
    uuie/uuie_kernel.c -lm -o uuie/uuie_kernel
-kg -l klong/weil_horn.kg
+# Klong 20221212 from https://t3x.org/klong/ ; KLONGPATH must include its lib/ directory
+kg -q klong/weil_horn.kg 128          # writes matrix_R.dat
 ./uuie/uuie_kernel 128 0.6725 matrix_R.dat
 
-# Cost models
-python3 quantum/block_encoding_audit.py
-python3 quantum/sparse_lcu.py --N 256 --sweep
-
-# Formal witnesses
+# Formal witness
 z3 formal/fp_rounding_witness.smt2
-python3 formal/recursive_manifold_prune.py > horn/certified_manifold_cells.pl
 
-# Policy predicate
+# Policy predicate and tests
 swipl -q -s horn/horn_cert.pl \
   -g "qsvt_polylog_cert(1000000,2.70,0.05,Q), writeln(Q), halt"
+swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
 ```
 
-Hard gate from Python:
+### Results of these commands on 2026-11-15
 
-```python
-from harness.gate import clean_and_gate_llm_output
-verdict = clean_and_gate_llm_output(raw_llm_text, n=128, target_rho=0.6725)
-assert verdict["accepted"], verdict.get("reason")
-```
+| Command | Result |
+|---------|--------|
+| `kg -q klong/weil_horn.kg 128` (Klong 20221212) | exit 0, 16384 values written, about 2.5 min |
+| `uuie_kernel 128 0.6725 matrix_R.dat` | `valid`, exit 0: rho_lb = 0.17079, n_+ = 128/128 |
+| `kg -q klong/weil_horn.kg 64` + `uuie_kernel 64 ...` | `valid`, exit 0: rho_lb = 0.29648, n_+ = 64/64 |
+| `z3 formal/fp_rounding_witness.smt2` (Z3 5.4.1) | `sat` |
+| `qsvt_polylog_cert(1000000,2.70,0.05,Q)` | `Q = 747` |
+| plunit suite (SWI-Prolog 9.2.9) | 20/20 pass |
+
+The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho_lb is well below 0.6725. n_+/N = 1 holds because the sinc Gram part is positive semidefinite and the contact term adds c0 = 1 times the identity, so this is not evidence about zeta zeros by itself.
 
 ---
 
@@ -287,9 +267,10 @@ A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyon
 
 ## 10. Status
 
-- Classical discrete certificates: **operational**
-- Hard gate against non-executable synthesis: **operational**
-- Sparse LCU truncation: **operational**
+- Classical discrete certificates (Klong + UUie + Horn): **run end to end on 2026-11-15**
+- Automatic gate against non-executable synthesis: **removed** with `harness/gate.py`; the kg and uuie steps still run by hand
+- Sparse LCU truncation and block-encoding audit: **removed** (Python); recorded tables kept
+- Alloy models, BQN probe, GitHub workflow: **not run** in the 2026-11-15 pass
 - Quantum polylog projection of simple zeros: **not claimed**; gaps named and measured
 
 ## License
