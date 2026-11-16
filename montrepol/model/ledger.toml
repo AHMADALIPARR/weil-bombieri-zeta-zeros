@@ -1,0 +1,3 @@
+[ledger]
+# Transcription corrections to oracle data must be recorded here.
+corrections = []

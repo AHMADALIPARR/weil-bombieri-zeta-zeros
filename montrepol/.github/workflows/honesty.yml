@@ -1,0 +1,29 @@
+# Falsifiability: every planted defect in model/mutants.toml must be caught by
+# the tests it names. Split from `ci` so a failure here reads as "a test can no
+# longer fail", not "the code is broken".
+name: honesty
+
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  mutants:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.10.1"
+          cabal-version: "3.12.1.0"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-ghc-9.10.1-${{ hashFiles('cabal.project', 'packages/*/*.cabal') }}
+      - run: cabal build all
+      - run: cabal run mp-gate -- mutants
+      # The mutant run restores every file it touches; prove the tree is clean.
+      - run: git diff --exit-code

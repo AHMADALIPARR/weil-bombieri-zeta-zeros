@@ -1,0 +1,3 @@
+[mutants]
+# Intentional faults used by the honesty tests.
+# Each mutant should make mp-gate fail.

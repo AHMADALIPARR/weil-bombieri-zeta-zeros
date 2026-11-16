@@ -1,0 +1,19 @@
+cabal-version:      3.0
+name:               mp-lie
+version:            0.1.0.0
+synopsis:           Crystallographic root systems and Weyl group orders, computed.
+license:            AGPL-3.0-or-later
+build-type:         Simple
+
+library
+  exposed-modules:  MP.RootSystem
+  hs-source-dirs:   src
+  build-depends:    base >=4.20 && <4.21, containers >=0.7 && <0.8
+  default-language: GHC2021
+
+test-suite mp-lie-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   test
+  build-depends:    base >=4.20 && <4.21, containers >=0.7 && <0.8, mp-check, mp-lie, mp-linalg
+  default-language: GHC2021

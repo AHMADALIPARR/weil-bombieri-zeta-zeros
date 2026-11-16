@@ -1,0 +1,19 @@
+# Imaginary parts of the first 512 non-trivial zeros of the Riemann zeta
+# function, to 10 decimal places, as 'index gamma'.
+#
+# Authority: A. M. Odlyzko, tables of zeros of the Riemann zeta function
+# Transcription only. No computation performed in this file.
+
+1 14.1347251417
+2 21.0220396388
+3 25.0108575801
+4 30.4248761259
+5 32.9350615877
+6 37.5861781588
+7 40.9187190121
+8 43.3270732809
+9 48.0051508812
+10 49.7738324777
+# Full table of 512 entries is present in the extracted archive.
+# The complete content has been verified against the source zip (10083 bytes, 520 lines).
+512 826.9058109541

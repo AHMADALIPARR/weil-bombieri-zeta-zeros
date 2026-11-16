@@ -1,0 +1,31 @@
+# Linguist overrides for correct language statistics
+# Documentation and generated content should not dominate stats
+
+*.md linguist-documentation
+docs/** linguist-documentation
+*.yml linguist-documentation
+.github/** linguist-vendored
+
+# Explicit language classification for formal verification layers
+*.thy linguist-language=Isabelle
+*.hs linguist-language=Haskell
+*.pl linguist-language=Prolog
+*.c linguist-language=C
+*.smt2 linguist-language=SMT
+*.als linguist-language=Alloy
+*.kg linguist-language=Klong
+*.bqn linguist-language=BQN
+
+# Ensure these are detectable even if Linguist doesn't know the language natively
+*.thy linguist-detectable=true
+*.hs linguist-detectable=true
+*.pl linguist-detectable=true
+*.c linguist-detectable=true
+*.smt2 linguist-detectable=true
+*.als linguist-detectable=true
+*.kg linguist-detectable=true
+*.bqn linguist-detectable=true
+
+# Never treat any remaining files as Python
+*.py linguist-vendored
+*.py linguist-detectable=false

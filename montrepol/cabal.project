@@ -1,0 +1,10 @@
+packages:
+  packages/mp-analytic
+  packages/mp-check
+  packages/mp-gate
+  packages/mp-lie
+  packages/mp-linalg
+  packages/mp-seq
+
+package *
+  ghc-options: -Wall -Werror -Wcompat

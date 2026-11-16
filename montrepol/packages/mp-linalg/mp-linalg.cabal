@@ -1,0 +1,19 @@
+cabal-version: 2.4
+name: mp-linalg
+version: 0.1.0.0
+synopsis: Hermitian matrix primitives and rank-trace bounds
+license: AGPL-3.0-or-later
+build-type: Simple
+
+library
+  exposed-modules: MP.Algebra, MP.Matrix, MP.Participation
+  build-depends: base >=4.14 && <5
+  hs-source-dirs: src
+  default-language: Haskell2010
+
+test-suite mp-linalg-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  build-depends: base, mp-linalg
+  hs-source-dirs: test
+  default-language: Haskell2010

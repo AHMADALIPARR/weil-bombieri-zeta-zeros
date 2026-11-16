@@ -1,0 +1,9 @@
+[ids]
+# Allow-list of string literals that are permitted to look numeric.
+# Everything else that looks like a computed constant is a gate violation.
+
+allowed = [
+  "0.6725",
+  "2/3",
+  "1/2"
+]

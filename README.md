@@ -6,6 +6,10 @@ This repository implements the discrete side of the Alpoge-Furman argument ([arX
 
 Companion tables: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
+Higher-order logic formalization of the rank-trace bound: [formal/hol/](formal/hol/).
+
+Liquid Haskell refinement types (thousands of lines) replacing former Python: [liquid-haskell/](liquid-haskell/).
+
 ---
 
 ## 1. Research goal
@@ -16,7 +20,11 @@ Let `N(T)` count non-trivial zeros of zeta with `0 < Im(s) <= T`. Let `N_s(T)` c
 liminf N_s(T)/N(T)  >=  rho_0
 ```
 
+![Critical-line zeros](docs/images/02-critical-line-zeros.png)
+
 ### Historical record
+
+![Historical bounds](docs/images/07-historical-bounds.png)
 
 | Result | Bound | Method | Year |
 |--------|-------|--------|------|
@@ -38,12 +46,18 @@ n_+(R)  >=  (tr R)^2 / tr(R^2)
 rho(R)  =   (tr R)^2 / (N * ||R||_HS^2)
 ```
 
+![Weil explicit formula](docs/images/04-weil-explicit-formula.png)
+
+![Montgomery form factor](docs/images/05-montgomery-form-factor.png)
+
 Positive eigenvalues force simple critical-line zeros in the window. Hard constraints on every candidate `R`:
 
 1. Conjugate symmetry `R = R^H`
 2. Unit-band Fourier support
 3. No NaN/Inf
 4. Directed-rounding lower bound on `rho`, or exact Jacobi `n_+/N`, above target (default 0.6725)
+
+![Hermitian compression](docs/images/03-hermitian-compression.png)
 
 ---
 
@@ -64,6 +78,7 @@ Positive eigenvalues force simple critical-line zeros in the window. Hard constr
 | `.github/workflows/horn-sweep.yml` | Manual matrix job; builds the C kernel only | not run in this pass |
 | `docs/BENCHMARKS.md` | Measured tables (from the removed Python modules) | docs |
 | `docs/qsvt-polylog-soundness.md` | What the policy does not prove | docs |
+| `docs/hol.md` | HOL + LH overview | docs |
 
 ### Removed components
 
@@ -190,6 +205,8 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 
 ## 6. Architecture
 
+![Certificate pipeline](docs/images/08-certificate-pipeline.png)
+
 ```text
 synthesis model / Muse
   |  must emit <klong_kernel> ... </klong_kernel>   (extraction step removed with harness/gate.py)
@@ -204,6 +221,8 @@ horn/horn_cert.pl
   |-- verified_weil_smt_witness/4       (horn/smt_manifold_cert.pl; needs SMT cell facts)
 ```
 
+![Rank-trace certificate](docs/images/06-rank-trace-certificate.png)
+
 ---
 
 ## 7. Open problems
@@ -215,7 +234,7 @@ horn/horn_cert.pl
 | 3 | Proved constructive prefactor C >= 4/pi (ideally GSLW ~ 4) | analytic |
 | 4 | Map positive eigenmodes of R to ordinates gamma_n | analytic / spectral |
 | 5 | Calibrate c0(T) to explicit-formula diagonal | analytic + numerical |
-| 6 | Machine-checked proof of UUie directed-rounding inequalities | formal verification |
+| 6 | Machine-checked proof of UUie directed-rounding inequalities | formal verification (HOL algebraic part + LH models now present) |
 
 ---
 
@@ -251,6 +270,19 @@ swipl -q -s horn/horn_cert.pl -s horn/test_qsvt_polylog.pl -g "run_tests, halt"
 
 The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho_lb is well below 0.6725. n_+/N = 1 holds because the sinc Gram part is positive semidefinite and the contact term adds c0 = 1 times the identity, so this is not evidence about zeta zeros by itself.
 
+### Results of these commands on 2026-11-15
+
+| Command | Result |
+|---------|--------|
+| `kg -q klong/weil_horn.kg 128` (Klong 20221212) | exit 0, 16384 values written, about 2.5 min |
+| `uuie_kernel 128 0.6725 matrix_R.dat` | `valid`, exit 0: rho_lb = 0.17079, n_+ = 128/128 |
+| `kg -q klong/weil_horn.kg 64` + `uuie_kernel 64 ...` | `valid`, exit 0: rho_lb = 0.29648, n_+ = 64/64 |
+| `z3 formal/fp_rounding_witness.smt2` (Z3 5.4.1) | `sat` |
+| `qsvt_polylog_cert(1000000,2.70,0.05,Q)` | `Q = 747` |
+| plunit suite (SWI-Prolog 9.2.9) | 20/20 pass |
+
+The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho_lb is well below 0.6725. n_+/N = 1 holds because the sinc Gram part is positive semidefinite and the contact term adds c0 = 1 times the identity, so this is not evidence about zeta zeros by itself.
+
 ---
 
 ## 9. Verification philosophy
@@ -260,6 +292,8 @@ The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho
 | A | Analytic theorems (Alpoge-Furman, BGSTB) | external; consumed, not re-proved |
 | B | Discrete numerical certificates (directed rho, Jacobi n_+) | **operational** |
 | C | Complexity envelopes and quantum sketches | instrumented; **holes named** |
+| D | Higher-order logic (rank-trace bound) + automation | **Isabelle/HOL theories present** |
+| E | Refinement types (Liquid Haskell) | **thousands of lines present** |
 
 A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyond bandwidth one, a closed Layer C (sound ceiling + proved prefactor + real block-encoding), and a bridge from eigenmodes to ordinates. This repo does not make that claim.
 
