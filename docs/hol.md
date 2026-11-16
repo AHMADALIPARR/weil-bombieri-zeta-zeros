@@ -1,16 +1,14 @@
-# Higher-Order Logic Layer
+# Higher-Order Logic and Refinement Types
 
-The repository now contains an Isabelle/HOL formalization of the
-elementary rank-trace inequality that turns a positive trace-moment
-ratio into a lower bound on the number of positive eigenvalues.
+## Isabelle/HOL
 
-See `formal/hol/WeilBombieriRankTrace.thy` and `formal/hol/README.md`.
+- `formal/hol/WeilBombieriRankTrace.thy` — algebraic rank-trace bound
+- `formal/hol/IsabelleAutomation.thy` — demonstration of sledgehammer, smt, simp, etc. for related goals
 
-This addresses part of open problem 6 (machine-checked proof of the
-UUie inequalities) by securing the pure mathematical step. The
-floating-point directed-rounding argument that produces the concrete
-numbers `tr_down` and `hs2_up` is still outside the logic.
+## Liquid Haskell
 
-The Horn certificates continue to consume the numeric witnesses emitted
-by the C kernel; the HOL theory supplies an independent proof that those
-witnesses are meaningful.
+- `liquid-haskell/` — thousands of lines of refinement types covering Matrix, Certificate, DirectedRounding, and QSVT policy
+
+These replace the former Python modules (harness.py, quantum/*.py, etc.) with machine-checked specifications.
+
+Open problem 6 (full floating-point directed-rounding soundness) remains; the LH layer provides abstract models and the Isabelle layer provides the pure math.
