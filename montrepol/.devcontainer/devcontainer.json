@@ -1,0 +1,10 @@
+{
+  "name": "montrepol",
+  "image": "haskell:9.6",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "extensions": ["haskell.haskell"]
+    }
+  }
+}
