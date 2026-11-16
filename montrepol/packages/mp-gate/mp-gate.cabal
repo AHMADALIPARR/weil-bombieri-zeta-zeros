@@ -6,8 +6,13 @@ license: AGPL-3.0-or-later
 build-type: Simple
 
 library
-  exposed-modules: MP.Gate.Model, MP.Gate.Render, MP.Gate.Rules, MP.Gate.Scan, MP.Gate.Toml
-  build-depends: base >=4.14 && <5
+  exposed-modules:
+    MP.Gate.Model
+    MP.Gate.Render
+    MP.Gate.Rules
+    MP.Gate.Scan
+    MP.Gate.Toml
+  build-depends: base >=4.14 && <5, text, containers
   hs-source-dirs: src
   default-language: Haskell2010
 
@@ -15,4 +20,11 @@ executable mp-gate
   main-is: Main.hs
   build-depends: base, mp-gate
   hs-source-dirs: app
+  default-language: Haskell2010
+
+test-suite mp-gate-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  build-depends: base, mp-gate
+  hs-source-dirs: test
   default-language: Haskell2010
