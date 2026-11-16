@@ -82,4 +82,20 @@ test(exception_identifies_public_predicate,
      ))]) :-
     qsvt_polylog_cert(0, 2.70, 0.05, _).
 
+test(witness_without_certificate, [fail]) :-
+    retractall(user:rank_trace_cert(_, _, _, _, _, _, _)),
+    verified_weil_quantum_witness(128, _, _, _).
+
+test(witness_with_certificate,
+     [ setup(assertz(user:rank_trace_cert(128, 1.0, 1.0, 0.7, 128, 1.0, valid))),
+       cleanup(retractall(user:rank_trace_cert(_, _, _, _, _, _, _))),
+       true(Q == 747) ]) :-
+    verified_weil_quantum_witness(128, _, _, Q).
+
+test(witness_rejected_certificate, [fail]) :-
+    setup_call_cleanup(
+        assertz(user:rank_trace_cert(128, 1.0, 1.0, 0.7, 128, 1.0, reject)),
+        verified_weil_quantum_witness(128, _, _, _),
+        retractall(user:rank_trace_cert(_, _, _, _, _, _, _))).
+
 :- end_tests(qsvt_polylog_cert).
