@@ -20,11 +20,11 @@ Let `N(T)` count non-trivial zeros of zeta with `0 < Im(s) <= T`. Let `N_s(T)` c
 liminf N_s(T)/N(T)  >=  rho_0
 ```
 
-![Critical-line zeros](docs/images/02-critical-line-zeros.png)
+![Critical-line zeros](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/02-critical-line-zeros.png)
 
 ### Historical record
 
-![Historical bounds](docs/images/07-historical-bounds.png)
+![Historical bounds](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/07-historical-bounds.png)
 
 | Result | Bound | Method | Year |
 |--------|-------|--------|------|
@@ -46,9 +46,9 @@ n_+(R)  >=  (tr R)^2 / tr(R^2)
 rho(R)  =   (tr R)^2 / (N * ||R||_HS^2)
 ```
 
-![Weil explicit formula](docs/images/04-weil-explicit-formula.png)
+![Weil explicit formula](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/04-weil-explicit-formula.png)
 
-![Montgomery form factor](docs/images/05-montgomery-form-factor.png)
+![Montgomery form factor](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/05-montgomery-form-factor.png)
 
 Positive eigenvalues force simple critical-line zeros in the window. Hard constraints on every candidate `R`:
 
@@ -57,7 +57,7 @@ Positive eigenvalues force simple critical-line zeros in the window. Hard constr
 3. No NaN/Inf
 4. Directed-rounding lower bound on `rho`, or exact Jacobi `n_+/N`, above target (default 0.6725)
 
-![Hermitian compression](docs/images/03-hermitian-compression.png)
+![Hermitian compression](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/03-hermitian-compression.png)
 
 ---
 
@@ -205,7 +205,7 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 
 ## 6. Architecture
 
-![Certificate pipeline](docs/images/08-certificate-pipeline.png)
+![Certificate pipeline](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/08-certificate-pipeline.png)
 
 ```text
 synthesis model / Muse
@@ -221,7 +221,7 @@ horn/horn_cert.pl
   |-- verified_weil_smt_witness/4       (horn/smt_manifold_cert.pl; needs SMT cell facts)
 ```
 
-![Rank-trace certificate](docs/images/06-rank-trace-certificate.png)
+![Rank-trace certificate](https://raw.githubusercontent.com/AHMADALIPARR/weil-bombieri-zeta-zeros/main/docs/images/06-rank-trace-certificate.png)
 
 ---
 
