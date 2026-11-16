@@ -1,0 +1,32 @@
+# The acceptance gate. `honesty.yml` carries the mutant replay separately, so
+# a red mark there reads as what it is: not broken code, but a test that has
+# stopped being able to fail.
+name: ci
+
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  vv:
+    name: build, test, gate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.10.1"
+          cabal-version: "3.12.1.0"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-ghc-9.10.1-${{ hashFiles('cabal.project', 'packages/*/*.cabal') }}
+      - run: cabal build all
+      - run: cabal test all --test-show-details=direct
+      - run: cabal run mp-gate
+      # CONFORMANCE.md must already be what the model generates (R1); this
+      # also fails if `write` would change anything.
+      - run: cabal run mp-gate -- write && git diff --exit-code CONFORMANCE.md
