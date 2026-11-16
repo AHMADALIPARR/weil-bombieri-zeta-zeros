@@ -12,7 +12,7 @@
 ; Run:  z3 formal/fp_rounding_witness.smt2
 ; Expected: sat  (with concrete alpha, gap, q_rne, q_rtp)
 ;
-; Verified sat under Z3 4.8.12.
+; Verified sat under Z3 4.8.12. Re-run 2026-11-15 under Z3 5.4.1: sat.
 
 (set-logic QF_FP)
 
