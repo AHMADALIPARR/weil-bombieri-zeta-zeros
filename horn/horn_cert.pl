@@ -1,5 +1,10 @@
 :- use_module(library(error)).
 
+% rank_trace_cert/7 facts are emitted by uuie/uuie_kernel and consulted at
+% run time. Declaring the predicate dynamic makes the combined witness fail
+% cleanly (instead of raising existence_error) when no certificate is loaded.
+:- dynamic rank_trace_cert/7.
+
 /*
  * qsvt_polylog_cert(+N, +AlphaC, +GapR, ?MaxQueries)
  *
