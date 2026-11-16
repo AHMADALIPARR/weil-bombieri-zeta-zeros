@@ -18,7 +18,7 @@ $$
 onto an $N\times N$ matrix $R$ built from modulated bandwidth-one windows, evaluates the unconditional Montgomery form factor (BGSTB), and applies the Bombieri rank-trace inequality
 
 $$
-n_+(R)\ge\frac{(\operatorname{tr} R)^2}{\operatorname{tr}(R^2)}.
+n_+(R)\ge\frac{(\mathrm{tr} R)^2}{\mathrm{tr}(R^2)}.
 $$
 
 ## 2. The Bandwidth-1 Ceiling
@@ -51,7 +51,6 @@ Classically, full diagonalisation of an $N\times N$ dense matrix is $O(N^3)$. On
 | Path | Role |
 |------|------|
 | `uuie/uuie_kernel.c` | Directed-rounding analytic bound **and** certified Jacobi $n_+(R)$ with Gershgorin safety margin |
-| `klong/weil_horn.kg` | Contains both the parametric window family **and** the exact Montgomery–Taylor extremizer `psi_mt` |
-| `quantum/berry_keating_qsvt.py` | Pure PyTorch (`torch.complex128`) implementation of the QSVT projector and the discrete Berry–Keating generator; projects $H$ onto $\Pi_+(R)$ |
+| `klong/weil_horn.kg` | Contains both the parametric window family **and** the exact Montgomery–Taylor extremizer `psimt` |
 
-Together they close the loop from classical rank-trace certificates to a quantum-ready spectral projector sitting on exactly the same matrix $R$.
+With the projector code removed, only the classical rank-trace path (Klong + UUie + Horn) is executable here.

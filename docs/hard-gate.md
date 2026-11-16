@@ -12,7 +12,7 @@ extract <klong_kernel> … </klong_kernel>
 
 write /tmp/candidate_weil.kg
     ↓
-./klong/kg -l candidate_weil.kg   →  matrix_R.dat
+kg -q candidate_weil.kg N   →  matrix_R.dat
     ↓  (hard reject on non-zero exit or missing matrix)
 
 ./uuie/uuie_kernel N target matrix_R.dat
@@ -31,20 +31,18 @@ exit 1  ⇒  rejected
 
 Any prose-only answer, any kernel that fails to emit a matrix, any numerical instability, or any certificate that misses the target is **hard-rejected**. There is no soft threshold, no “almost”, and no override.
 
-## API
+## Status on this branch
 
-```python
-from harness.gate import clean_and_gate_llm_output
-from harness.harness import step_synthesis_klong, gate_response
-
-verdict = gate_response(raw_llm_text, n=128, target_rho=0.6725)
-if verdict["accepted"]:
-    print(verdict["horn_fact"])   # sealed ground fact for the Horn engine
+```bash
+kg -q candidate_weil.kg 128          # must exit 0 and write matrix_R.dat
+./uuie/uuie_kernel 128 0.6725 matrix_R.dat   # exit 0 = accepted, 1 = rejected, 2 = bad input
 ```
+
+The extraction of the `<klong_kernel>` block from raw model output and the automatic reject on missing kernels are not implemented in any remaining file.
 
 ## Design Rationale
 
 - **Executable only.** The gate never evaluates a natural-language claim; it only evaluates a runnable Klong program.
 - **Directed rounding.** Floating-point drift cannot manufacture a false positive.
-- **Jacobi + Gershgorin.** Exact $n_+$ under a rigorous safety margin complements the analytic trace-moment bound.
+- **Jacobi + Gershgorin.** A certified $n_+$ count under a Gershgorin safety margin complements the analytic trace-moment bound.
 - **Zero trust in the generator.** The LLM may be stochastic, fine-tuned, or adversarial; the gate is deterministic and side-effect-free.
