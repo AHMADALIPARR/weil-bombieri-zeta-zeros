@@ -12,7 +12,7 @@ For an off-diagonal pair \((p,q)\):
 
 $$
 \tau = \frac{A_{qq}-A_{pp}}{2A_{pq}},\qquad
-t = \frac{\operatorname{sign}(\tau)}{|\tau|+\sqrt{1+\tau^2}},\qquad
+t = \frac{\mathrm{sign}(\tau)}{|\tau|+\sqrt{1+\tau^2}},\qquad
 c = \frac{1}{\sqrt{1+t^2}},\qquad
 s = tc.
 $$
@@ -28,7 +28,7 @@ The similarity update is the standard 2-sided Givens rotation that annihilates t
 
 - All Jacobi rotations themselves are performed under `FE_TONEAREST`.
 - The ambient rounding mode of the caller is saved and restored, so the subsequent analytic bound
-  \(\rho = (\operatorname{tr} R)^2/(N\cdot\|R\|_{\mathrm{HS}}^2)\)
+  \(\rho = (\mathrm{tr} R)^2/(N\cdot\|R\|_{\mathrm{HS}}^2)\)
   remains under the strict `FE_DOWNWARD` / `FE_UPWARD` regime already established by the certificate function.
 
 ## API
@@ -52,7 +52,7 @@ int uuie_jacobi_hermitian(double *A, int N, double *out_evals);
 The ground Horn fact emitted by the CLI therefore has the extended shape
 
 ```prolog
-rank_trace_cert(N, TrDown, Hs2Up, RhoLower, Nplus, valid|reject).
+rank_trace_cert(N, TrDown, Hs2Up, RhoLower, Nplus, JacobiFrac, valid|reject).
 ```
 
 The Horn layer can consequently reason about either the analytic bound or the true positive-eigenvalue count (or both).

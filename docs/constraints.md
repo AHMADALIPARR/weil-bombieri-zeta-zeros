@@ -14,7 +14,7 @@
 ## Target Metric
 
 $$
-ratio(R) = \frac{(\operatorname{Tr} R)^2}{N \cdot \operatorname{Tr}(R^2)} > 0.6725
+ratio(R) = \frac{(\mathrm{Tr} R)^2}{N \cdot \mathrm{Tr}(R^2)} > 0.6725
 $$
 
 This is the quantity that lower-bounds the positive-eigenvalue fraction $n_+(R)/N$ via the Bombieri rank-trace argument.
