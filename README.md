@@ -1,5 +1,7 @@
 # Weil-Bombieri Zeta Zeros
 
+![Weil–Bombieri Zeta Zeros](docs/images/01-weil-bombieri-cover.png)
+
 Discrete certificate tooling for the unconditional result on simple critical-line zeros of the Riemann zeta function via finite Hermitian compressions of the Weil explicit formula. The analytic theorem is from the cited paper; this code does not re-prove it.
 
 Companion tables: [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
@@ -18,7 +20,11 @@ Let `N(T)` count non-trivial zeros of zeta with `0 < Im(s) <= T`. Let `N_s(T)` c
 liminf N_s(T)/N(T)  >=  rho_0
 ```
 
+![Critical-line zeros](docs/images/02-critical-line-zeros.png)
+
 ### Historical record
+
+![Historical bounds](docs/images/07-historical-bounds.png)
 
 | Result | Bound | Method | Year |
 |--------|-------|--------|------|
@@ -40,12 +46,18 @@ n_+(R)  >=  (tr R)^2 / tr(R^2)
 rho(R)  =   (tr R)^2 / (N * ||R||_HS^2)
 ```
 
+![Weil explicit formula](docs/images/04-weil-explicit-formula.png)
+
+![Montgomery form factor](docs/images/05-montgomery-form-factor.png)
+
 Positive eigenvalues force simple critical-line zeros in the window. Hard constraints on every candidate `R`:
 
 1. Conjugate symmetry `R = R^H`
 2. Unit-band Fourier support
 3. No NaN/Inf
 4. Directed-rounding lower bound on `rho`, or exact Jacobi `n_+/N`, above target (default 0.6725)
+
+![Hermitian compression](docs/images/03-hermitian-compression.png)
 
 ---
 
@@ -180,6 +192,8 @@ Circulant-QFT remains preferred for zero truncation error at O(log^2 N) gate cos
 
 ## 6. Architecture
 
+![Certificate pipeline](docs/images/08-certificate-pipeline.png)
+
 ```text
 synthesis model / Muse
   v
@@ -200,6 +214,8 @@ formal/hol/IsabelleAutomation.thy
 liquid-haskell/
   |-- thousands of lines of refinement types encoding the same invariants
 ```
+
+![Rank-trace certificate](docs/images/06-rank-trace-certificate.png)
 
 ---
 
