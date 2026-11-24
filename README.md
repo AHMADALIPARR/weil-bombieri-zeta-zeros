@@ -290,22 +290,16 @@ The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho
 | Layer | Content | Status |
 |-------|---------|--------|
 | A | Analytic theorems (Alpoge-Furman, BGSTB) | external; consumed, not re-proved |
-| B | Discrete numerical certificates (directed rho, Jacobi n_+) | **operational** |
-| C | Complexity envelopes and quantum sketches | instrumented; **holes named** |
-| D | Higher-order logic (rank-trace bound) + automation | **Isabelle/HOL theories present** |
-| E | Refinement types (Liquid Haskell) | **thousands of lines present** |
+| B | Discrete numerical certificates (directed rho, Jacobi n_+) |
+| C | Complexity envelopes and quantum sketches | instrumented 
+| D | Higher-order logic (rank-trace bound) + automation | 
+| E | Refinement types (Liquid Haskell) |
 
 A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyond bandwidth one, a closed Layer C (sound ceiling + proved prefactor + real block-encoding), and a bridge from eigenmodes to ordinates. This repo does not make that claim.
 
 ---
 
 ## 10. Status
-
-- Classical discrete certificates (Klong + UUie + Horn): **run end to end on 2026-11-15**
-- Automatic gate against non-executable synthesis: **removed** with `harness/gate.py`; the kg and uuie steps still run by hand
-- Sparse LCU truncation and block-encoding audit: **removed** (Python); recorded tables kept
-- Alloy models, BQN probe, GitHub workflow: **not run** in the 2026-11-15 pass
-- Quantum polylog projection of simple zeros: **not claimed**; gaps named and measured
 
 ## License
 
