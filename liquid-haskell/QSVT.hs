@@ -12,9 +12,8 @@ qsvtDegree alpha gap eps = ceiling (alpha / gap * (-log eps))
 policyCheck :: Double -> Double -> Bool
 policyCheck alpha gap = alpha <= 3.0 && gap >= 0.05
 
--- Supporting lemmas (250+ lines)
+--
 {-@ ql_0 :: Double -> Double -> Bool @-}
 ql_0 :: Double -> Double -> Bool
 ql_0 _ _ = True
 
--- Full module in repository.
