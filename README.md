@@ -293,7 +293,7 @@ The Klong matrix clears the 0.6725 target only through the Jacobi count. Its rho
 | B | Discrete numerical certificates (directed rho, Jacobi n_+) |
 | C | Complexity envelopes and quantum sketches | instrumented 
 | D | Higher-order logic (rank-trace bound) + automation | 
-| E | Refinement types (Liquid Haskell) |
+
 
 A claim of "polylog quantum projection of simple zeta zeros" needs Layer A beyond bandwidth one, a closed Layer C (sound ceiling + proved prefactor + real block-encoding), and a bridge from eigenmodes to ordinates. This repo does not make that claim.
 
