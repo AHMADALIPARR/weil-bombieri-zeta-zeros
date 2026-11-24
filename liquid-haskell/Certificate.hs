@@ -18,9 +18,8 @@ data RankTraceCert = Cert Int Double Int Double String
 validateCert :: RankTraceCert -> Bool
 validateCert (Cert _ rho _ jfrac st) = (rho > 0.6725 || jfrac > 0.6725) && st == "valid"
 
--- Supporting lemmas (300+ lines)
 {-@ cl_0 :: RankTraceCert -> Bool @-}
 cl_0 :: RankTraceCert -> Bool
 cl_0 _ = True
 
--- Full module with all refinements is in the repo.
+
