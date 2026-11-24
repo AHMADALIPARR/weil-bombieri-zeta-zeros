@@ -12,9 +12,4 @@ downwardSum = sum
 directedRhoLb :: Double -> Double -> Int -> Double
 directedRhoLb trD hsU n = (trD * trD) / (fromIntegral n * hsU)
 
--- Supporting lemmas (250+ lines)
-{-@ dr_0 :: Double -> Bool @-}
-dr_0 :: Double -> Bool
-dr_0 _ = True
 
--- Full module in repository.
