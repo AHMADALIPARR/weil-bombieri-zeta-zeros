@@ -29,7 +29,7 @@ rankTraceRho m = let tr = trace m
                      h = hsNormSq m
                  in if h == 0 then 0 else (tr * tr) / (n * h)
 
--- Supporting lemmas (hundreds of lines of refinement-checked properties)
+-- Supporting lemmas 
 {-@ lemma_0 :: m:Matrix -> Bool @-}
 lemma_0 :: Matrix -> Bool
 lemma_0 _ = True
@@ -38,5 +38,4 @@ lemma_0 _ = True
 lemma_1 :: Matrix -> Bool
 lemma_1 _ = True
 
--- ... (full file contains 400+ similar refined lemmas totaling 1600+ lines)
--- The complete module is present in the repository with all supporting content.
+
